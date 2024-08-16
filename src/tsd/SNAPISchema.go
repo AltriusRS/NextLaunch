@@ -1,4 +1,4 @@
-package ll2
+package tsd
 
 type SNAPIResponse struct {
 	Count    int    `json:"count"`

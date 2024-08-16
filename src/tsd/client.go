@@ -1,7 +1,8 @@
-package ll2
+package tsd
 
 import (
 	"Nextlaunch/src/config"
+	"Nextlaunch/src/logging"
 	"encoding/json"
 	"io"
 	"log"
@@ -10,12 +11,13 @@ import (
 	"time"
 )
 
-// Client is a struct that contains the client for the whenplane API
-type Client struct {
+// BaseClient is a struct that contains the client for the whenplane API
+type BaseClient struct {
 	queue      chan *ClientRequest
 	ticker     *time.Ticker
 	shouldTick bool
 	client     *http.Client
+	logger     *logging.Logger
 }
 
 type ClientRequest struct {
@@ -61,13 +63,25 @@ func NewRequest(req *http.Request) *ClientRequest {
 	}
 }
 
-// NewClient returns a new Client
-func NewClient() *Client {
-	c := &Client{
+// NewClient returns a new BaseClient
+func NewClient() *BaseClient {
+	c := &BaseClient{
 		queue:      make(chan *ClientRequest),
 		ticker:     time.NewTicker(time.Millisecond * 100),
 		shouldTick: true,
-		client:     &http.Client{},
+		client: &http.Client{
+			Transport: &http.Transport{
+				MaxIdleConns:        10,
+				IdleConnTimeout:     time.Second * 60,
+				DisableCompression:  true,
+				TLSHandshakeTimeout: time.Second * 5,
+			},
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+			Timeout: time.Second * 5,
+		},
+		logger: logging.NewLogger("HTTP Client"),
 	}
 
 	go func() {
@@ -81,48 +95,56 @@ func NewClient() *Client {
 }
 
 // ProcessRequest adds a request to the queue
-func (c *Client) ProcessRequest(r *ClientRequest) {
-
+func (c *BaseClient) ProcessRequest(r *ClientRequest) {
+	c.logger.Debug("Processing request")
 	// Set the required headers for every request
 	r.req.Header.Set("Accept", "application/json")
 
 	// You may be warned this is "always true" it is not, as it is conditionally set by the compiler
-	if config.IsDev {
-		r.req.Header.Set("User-Agent", "NextLaunch/"+config.Version+"-"+config.BuildDate+" DEV")
+	if //goland:noinspection GoBoolExpressions,GoBoolExpressions
+	config.IsDev {
+		r.req.Header.Set("User-Agent", "NextLaunch/"+config.Version+"-"+config.BuildDate+" DEVELOPMENT BUILD")
 	} else {
 		r.req.Header.Set("User-Agent", "NextLaunch/"+config.Version+"-"+config.BuildDate)
 	}
 
+	c.logger.Debug("Sending request to " + r.req.URL.String())
+	c.logger.Debug("Headers")
+	for k, v := range r.req.Header {
+		c.logger.Debug("> " + k + ": " + v[0])
+	}
 	resp, err := c.client.Do(r.req)
 
+	c.logger.Debug("Got response")
 	r.res = resp
 	r.err = err
+	c.logger.Debug("Callback")
 	r.Callback()
 }
 
-// Ticker returns the ticker for the Client
-func (c *Client) Ticker() *time.Ticker {
+// Ticker returns the ticker for the BaseClient
+func (c *BaseClient) Ticker() *time.Ticker {
 	return c.ticker
 }
 
-// Queue returns the queue for the Client
-func (c *Client) Queue() chan *ClientRequest {
+// Queue returns the queue for the BaseClient
+func (c *BaseClient) Queue() chan *ClientRequest {
 	return c.queue
 }
 
-// ShouldTick returns the shouldTick for the Client
-func (c *Client) ShouldTick() bool {
+// ShouldTick returns the shouldTick for the BaseClient
+func (c *BaseClient) ShouldTick() bool {
 	return c.shouldTick
 }
 
 // Close shuts the client down immediately
-func (c *Client) Close() {
+func (c *BaseClient) Close() {
 	c.ticker.Stop()
 	close(c.queue)
 	c.shouldTick = false
 }
 
-func (c *Client) Get(url string) (*http.Response, error) {
+func (c *BaseClient) Get(url string) (*http.Response, error) {
 	r, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -135,7 +157,7 @@ func (c *Client) Get(url string) (*http.Response, error) {
 }
 
 // GetNewsArticles returns a list of NewsArticles from the given limit and offset
-func (c *Client) GetNewsArticles(limit int, offset int) []NewsArticle {
+func (c *BaseClient) GetNewsArticles(limit int, offset int) []NewsArticle {
 	res, err := c.Get(config.SNAPIBaseURL + config.SNAPIVersion + "/news?limit=" + strconv.Itoa(limit) + "&offset=" + strconv.Itoa(offset))
 
 	if err != nil {
