@@ -76,9 +76,9 @@ func NewClient() *BaseClient {
 				DisableCompression:  true,
 				TLSHandshakeTimeout: time.Second * 5,
 			},
-			CheckRedirect: func(req *http.Request, via []*http.Request) error {
-				return http.ErrUseLastResponse
-			},
+			//CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			//	return http.ErrUseLastResponse
+			//},
 			Timeout: time.Second * 5,
 		},
 		logger: logging.NewLogger("HTTP Client"),
@@ -113,6 +113,7 @@ func (c *BaseClient) ProcessRequest(r *ClientRequest) {
 	for k, v := range r.req.Header {
 		c.logger.Debug("> " + k + ": " + v[0])
 	}
+
 	resp, err := c.client.Do(r.req)
 
 	c.logger.Debug("Got response")

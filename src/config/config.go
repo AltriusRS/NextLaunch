@@ -11,7 +11,7 @@ import (
 )
 
 var Version = "0.0.1"
-var LL2Version = "2.2.0"
+var LL2Version = "2.3.0"
 var LL2BaseURL = "https://lldev.thespacedevs.com/"
 var LL2FullBaseURL = LL2BaseURL + LL2Version + "/"
 var SNAPIVersion = "4"
@@ -30,10 +30,10 @@ func LoadConfig() {
 	logger = logging.NewLogger("config")
 	logger.Log("Loading config")
 	// Prepare the configuration directory
-	configDir := path.Join(PrepConfigDirectory(), "config.toml")
-	logger.Debug("Checking config file at " + configDir)
+	configPath := path.Join(PrepConfigDirectory(), "config.toml")
+	logger.Debug("Checking config file at " + configPath)
 
-	stat, err := os.Stat(configDir)
+	stat, err := os.Stat(configPath)
 
 	if err != nil {
 		logger.Fatal(err)
@@ -45,12 +45,12 @@ func LoadConfig() {
 	if stat.Size() == 0 {
 		logger.Log("Config file is empty, creating a new one")
 		Config = DefaultConfig
-		WriteConfig(configDir)
+		WriteConfig(configPath)
 		return
 	}
 
 	// Load the config file
-	file, err := os.OpenFile(configDir, os.O_RDWR, 0644)
+	file, err := os.OpenFile(configPath, os.O_RDWR, 0644)
 
 	if err != nil {
 		logger.Fatal(err)

@@ -4,6 +4,31 @@ import "strings"
 
 var DefaultConfig = Configuration{
 	Spec: "0",
+	General: General{
+		Language: "en-US",
+		LogLevel: "Info",
+	},
+	Database: Database{
+		DatabaseLocation: "DEFAULT",
+	},
+	LaunchLibrary: LaunchLibrary{
+		LaunchLibraryKey: "",
+		CacheToDatabase:  true,
+		UpdateFrequency:  15,
+	},
+	Snapi: Snapi{
+		EnableSnapi:     true,
+		UpdateFrequency: 15,
+	},
+	ErrorLogging: ErrorLogging{
+		LogErrors:       true,
+		LogFileLocation: "DEFAULT",
+		AutoShareErrors: true,
+	},
+	Telemetry: Telemetry{
+		EnableTelemetry: true,
+		TelemetryLevel:  1,
+	},
 }
 
 type MigrationEntity struct {

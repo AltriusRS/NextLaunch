@@ -27,14 +27,14 @@ type LaunchLibrary struct {
 }
 
 type Snapi struct {
-	EnableSnapi bool   `toml:"enable_snapi" json:"enable_snapi" comment:"Enable Snapi"`
-	UpdateFreq  uint16 `toml:"update_frequency" json:"update_frequency" comment:"How often to check for updates in minutes (0 = disabled | 15 = every 15 minutes | minimum = 5 | maximum = 60)"`
+	EnableSnapi     bool   `toml:"enable_snapi" json:"enable_snapi" comment:"Enable Snapi"`
+	UpdateFrequency uint16 `toml:"update_frequency" json:"update_frequency" comment:"How often to check for updates in minutes (0 = disabled | 15 = every 15 minutes | minimum = 5 | maximum = 60)"`
 }
 
 type ErrorLogging struct {
-	LogErrors    bool   `toml:"log_errors" json:"log_errors" comment:"Log errors"`
-	LogFileLoc   string `toml:"log_file_location" json:"log_file_location" comment:"Log file location"`
-	AutoShareErr bool   `toml:"auto_share_errors" json:"auto_share_errors" comment:"Auto share errors"`
+	LogErrors       bool   `toml:"log_errors" json:"log_errors" comment:"Log errors"`
+	LogFileLocation string `toml:"log_file_location" json:"log_file_location" comment:"Log file location"`
+	AutoShareErrors bool   `toml:"auto_share_errors" json:"auto_share_errors" comment:"Auto share errors"`
 }
 
 type Telemetry struct {

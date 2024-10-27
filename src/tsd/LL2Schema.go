@@ -13,72 +13,78 @@ type LL2LaunchesResponse struct {
 	LL2StandardResponse
 }
 
+type LL2LaunchStatus struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Abbrev      string `json:"abbrev"`
+	Description string `json:"description"`
+}
+
+type LL2LaunchUpdate struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Abbrev      string `json:"abbrev"`
+	Description string `json:"description"`
+}
+
+type LL2LaunchNetPrecision struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Abbrev      string `json:"abbrev"`
+	Description string `json:"description"`
+}
+
+type LL2LSP struct {
+	ID                            int    `json:"id"`
+	URL                           string `json:"url"`
+	Name                          string `json:"name"`
+	Featured                      bool   `json:"featured"`
+	Type                          string `json:"type"`
+	CountryCode                   string `json:"country_code"`
+	Abbrev                        string `json:"abbrev"`
+	Description                   string `json:"description"`
+	Administrator                 string `json:"administrator"`
+	FoundingYear                  string `json:"founding_year"`
+	Launchers                     string `json:"launchers"`
+	Spacecraft                    string `json:"spacecraft"`
+	LaunchLibraryURL              string `json:"launch_library_url"`
+	TotalLaunchCount              int64  `json:"total_launch_count"`
+	ConsecutiveSuccessfulLaunches int64  `json:"consecutive_successful_launches"`
+	SuccessfulLaunches            int64  `json:"successful_launches"`
+	FailedLaunches                int64  `json:"failed_launches"`
+	PendingLaunches               int64  `json:"pending_launches"`
+	ConsecutiveSuccessfulLandings int64  `json:"consecutive_successful_landings"`
+	SuccessfulLandings            int64  `json:"successful_landings"`
+	FailedLandings                int64  `json:"failed_landings"`
+	AttemptedLandings             int64  `json:"attempted_landings"`
+	InfoURL                       string `json:"info_url"`
+	WikiURL                       string `json:"wiki_url"`
+	LogoURL                       string `json:"logo_url"`
+	ImageURL                      string `json:"image_url"`
+	NationURL                     string `json:"nation_url"`
+}
+
 type LL2Launch struct {
-	ID            string `json:"id"`
-	URL           string `json:"url"`
-	Slug          string `json:"slug"`
-	FlightClubURL string `json:"flightclub_url"`
-	RSpacexAPIID  string `json:"r_spacex_api_id"`
-	Name          string `json:"name"`
-	Status        struct {
-		ID          int    `json:"id"`
-		Name        string `json:"name"`
-		Abbrev      string `json:"abbrev"`
-		Description string `json:"description"`
-	} `json:"status"`
-	LastUpdated time.Time `json:"last_updated"`
-	Updates     []struct {
-		ID           int       `json:"id"`
-		ProfileImage string    `json:"profile_image"`
-		Comment      string    `json:"comment"`
-		InfoURL      string    `json:"info_url"`
-		CreatedBy    string    `json:"created_by"`
-		CreatedOn    time.Time `json:"created_on"`
-	} `json:"updates"`
-	Net          time.Time `json:"net"`
-	NetPrecision struct {
-		ID          int64  `json:"id"`
-		Name        string `json:"name"`
-		Abbrev      string `json:"abbrev"`
-		Description string `json:"description"`
-	} `json:"net_precision"`
-	WindowEnd             time.Time `json:"window_end"`
-	WindowStart           time.Time `json:"window_start"`
-	Probability           int       `json:"probability"`
-	WeatherConcerns       string    `json:"weather_concerns"`
-	HoldReason            string    `json:"holdreason"`
-	FailReason            string    `json:"failreason"`
-	Hashtag               string    `json:"hashtag"`
-	LaunchServiceProvider struct {
-		ID                            int    `json:"id"`
-		URL                           string `json:"url"`
-		Name                          string `json:"name"`
-		Featured                      bool   `json:"featured"`
-		Type                          string `json:"type"`
-		CountryCode                   string `json:"country_code"`
-		Abbrev                        string `json:"abbrev"`
-		Description                   string `json:"description"`
-		Administrator                 string `json:"administrator"`
-		FoundingYear                  string `json:"founding_year"`
-		Launchers                     string `json:"launchers"`
-		Spacecraft                    string `json:"spacecraft"`
-		LaunchLibraryURL              string `json:"launch_library_url"`
-		TotalLaunchCount              int64  `json:"total_launch_count"`
-		ConsecutiveSuccessfulLaunches int64  `json:"consecutive_successful_launches"`
-		SuccessfulLaunches            int64  `json:"successful_launches"`
-		FailedLaunches                int64  `json:"failed_launches"`
-		PendingLaunches               int64  `json:"pending_launches"`
-		ConsecutiveSuccessfulLandings int64  `json:"consecutive_successful_landings"`
-		SuccessfulLandings            int64  `json:"successful_landings"`
-		FailedLandings                int64  `json:"failed_landings"`
-		AttemptedLandings             int64  `json:"attempted_landings"`
-		InfoURL                       string `json:"info_url"`
-		WikiURL                       string `json:"wiki_url"`
-		LogoURL                       string `json:"logo_url"`
-		ImageURL                      string `json:"image_url"`
-		NationURL                     string `json:"nation_url"`
-	} `json:"launch_service_provider"`
-	Rocket struct {
+	ID                    string                `json:"id"`
+	URL                   string                `json:"url"`
+	Slug                  string                `json:"slug"`
+	FlightClubURL         string                `json:"flightclub_url"`
+	RSpacexAPIID          string                `json:"r_spacex_api_id"`
+	Name                  string                `json:"name"`
+	Status                LL2LaunchStatus       `json:"status"`
+	LastUpdated           time.Time             `json:"last_updated"`
+	Updates               []LL2LaunchUpdate     `json:"updates"`
+	Net                   time.Time             `json:"net"`
+	NetPrecision          LL2LaunchNetPrecision `json:"net_precision"`
+	WindowEnd             time.Time             `json:"window_end"`
+	WindowStart           time.Time             `json:"window_start"`
+	Probability           int                   `json:"probability"`
+	WeatherConcerns       string                `json:"weather_concerns"`
+	HoldReason            string                `json:"holdreason"`
+	FailReason            string                `json:"failreason"`
+	Hashtag               string                `json:"hashtag"`
+	LaunchServiceProvider LL2LSP                `json:"launch_service_provider"`
+	Rocket                struct {
 		ID            int `json:"id"`
 		Configuration struct {
 			ID           int    `json:"id"`

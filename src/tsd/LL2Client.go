@@ -43,7 +43,7 @@ func NewLL2Client() *LL2Client {
 
 func (c *LL2Client) GetLaunches(limit int, offset int) *[]LL2Launch {
 	c.logger.Debug("Getting launches")
-	res, err := c.Get(config.LL2FullBaseURL + "launch/upcoming?format=json&mode=detailed&limit=" + strconv.Itoa(limit) + "&offset=" + strconv.Itoa(offset))
+	res, err := c.Get(config.LL2FullBaseURL + "launches/upcoming?format=json&mode=detailed&limit=" + strconv.Itoa(limit) + "&offset=" + strconv.Itoa(offset))
 
 	c.logger.Debug("Got response")
 
