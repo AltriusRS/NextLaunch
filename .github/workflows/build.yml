@@ -26,7 +26,18 @@ jobs:
           version-file: './version.txt'
           schema: major.minor.build
 
-  build:
+      - name: Set prerelease
+        id: prerelease
+        run: |
+          if [[ "${{ steps.build-version.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          fi
+
+# Build artifacts for linux
+  build-linux-arm64:
+    needs: pre-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,5 +50,79 @@ jobs:
       - name: Build
         run: go build -v -ldflags="-s -w -X 'main.version=1.0.0'" -o NextLaunch
 
-#      - name: Test
-#        run: go test -v ./...
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          name: NextLaunch-linux-arm64
+          path: NextLaunch
+          retention-days: 5
+
+# Build artifacts for windows
+  build-windows-amd64:
+    needs: pre-build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22.5'
+
+      - name: Build
+        run: go build -v -ldflags="-s -w -X 'main.version=1.0.0'" -o NextLaunch.exe
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          name: NextLaunch-windows-amd64.exe
+          path: NextLaunch.exe
+          retention-days: 5
+
+
+# Build artifacts for MacOS
+# MacOS is now purely arm64 based, so there is no need to build for MacOS amd64
+  build-macos-arm64:
+    needs: pre-build
+    runs-on: macos-
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22.5'
+
+      - name: Build
+        run: go build -v -ldflags="-s -w -X 'main.version=1.0.0'" -o NextLaunch
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          name: NextLaunch-macos-arm64
+          path: NextLaunch
+          retention-days: 5
+
+
+
+  release:
+    needs: [pre-build, build-linux-amd64, build-windows-amd64, build-macos-amd64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v3.0.2
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: NextLaunch ${{ needs.pre-build.outputs.version }}
+          tag_name: v${{ needs.pre-build.outputs.version }}
+          files: |
+            NextLaunch-linux-amd64/NextLaunch
+            NextLaunch-windows-amd64.exe/NextLaunch.exe
+            NextLaunch-macos-amd64/NextLaunch
+          draft: true
+          prerelease: ${{ needs.pre-build.outputs.prerelease }}
+          generate_release_notes: true
