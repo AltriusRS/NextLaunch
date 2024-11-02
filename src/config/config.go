@@ -28,6 +28,12 @@ var logger *logging.Logger
 func LoadConfig() {
 	logger = logging.NewLogger("config")
 	logger.Log("Loading config")
+
+	// Debug some information
+	logger.Debugf("Version is %s", Version)
+	logger.Debugf("Build date is %s", BuildDate)
+	logger.Debugf("Dev build is %s", DevBuild)
+
 	// Prepare the configuration directory
 	configPath, err := filepath.Abs(path.Join(PrepConfigDirectory(), "config.toml"))
 
