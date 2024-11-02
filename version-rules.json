@@ -2,7 +2,8 @@
   "scheme": "custom",
   "username": "Altrius",
   "email": "tom.b.2k2@gmail.com",
-  "schemeDefinition": "major.minor[.build][->patch]",
+  "scheme": "custom",
+  "custom-scheme": "major.minor[.build][->patch]",
   "versionFile": "./version.txt",
   "files": [],
   "rules": [
