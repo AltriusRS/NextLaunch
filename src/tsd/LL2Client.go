@@ -4,7 +4,6 @@ import (
 	"Nextlaunch/src/config"
 	"Nextlaunch/src/logging"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -48,7 +47,7 @@ func (c *LL2Client) GetLaunches(limit int, offset int) *[]LL2Launch {
 	c.logger.Debug("Got response")
 
 	if err != nil {
-		c.logger.Fatal(err)
+		c.logger.Error(err)
 		return nil
 	}
 
@@ -64,7 +63,7 @@ func (c *LL2Client) GetLaunches(limit int, offset int) *[]LL2Launch {
 	c.logger.Debug("Checking status code")
 
 	if res.StatusCode != 200 {
-		c.logger.Fatal(fmt.Errorf("status code %d", res.StatusCode))
+		c.logger.Errorf("Status code %d", res.StatusCode)
 		return nil
 	}
 
@@ -79,8 +78,8 @@ func (c *LL2Client) GetLaunches(limit int, offset int) *[]LL2Launch {
 	c.logger.Debug("Decoded response")
 
 	if err != nil {
-		c.logger.Fatal(err)
-		return nil
+		c.logger.Error(err)
+		return &response.Results
 	}
 
 	c.logger.Debug("Got " + strconv.Itoa(len(response.Results)) + " launches")

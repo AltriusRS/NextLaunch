@@ -24,6 +24,7 @@ type Logger struct {
 	queue    chan Message
 	outputs  []*Output
 	panicked bool
+	muted    bool
 }
 
 type Message struct {
@@ -44,6 +45,13 @@ func EnterTui() {
 
 // MuteStdout Global variable to mute logging to stdout (used for showing the tui)
 var MuteStdout = false
+
+// GlobalOutput is a global output that can be used to log messages
+// without having to create a new output
+
+const GlobalOutput = &Output{
+	inner: log.New(os.Stdout, "[Global]: ", log.Lshortfile),
+}
 
 func NewFileOutput(source string, module string) *Output {
 
@@ -235,35 +243,36 @@ func (logger *Logger) Debugf(format string, v ...interface{}) {
 }
 
 func (logger *Logger) Flush() {
-	for {
-		select {
-		case message := <-logger.queue:
-			atLeastOneOutput := false
-			for _, output := range logger.outputs {
-				output.Println(message)
-				if output.Enabled {
-					atLeastOneOutput = true
-				}
-			}
 
-			if atLeastOneOutput {
-
-			}
-		default:
-			return
-		}
-	}
 }
 
 func (logger *Logger) run() {
 	go func() {
-		for !logger.panicked {
-			logger.Flush()
-			time.Sleep(time.Millisecond * 10)
+		for !logger.panicked && !logger.muted {
+			select {
+			case message := <-logger.queue:
+				for _, output := range logger.outputs {
+					output.Println(message)
+				}
+			default:
+				continue
+			}
 		}
 
-		logger.Flush()
-		println("Logger panicked and flushed")
+		if logger.panicked {
+			logger.Flush()
+			println("Logger panicked and flushed")
+		}
 	}()
 	logger.Debug("Logger started")
+}
+
+func (logger *Logger) Mute() {
+	logger.muted = true
+	logger.panicked = false
+}
+
+func (logger *Logger) Unmute() {
+	logger.muted = false
+	logger.run()
 }

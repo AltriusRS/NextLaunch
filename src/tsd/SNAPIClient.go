@@ -2,6 +2,7 @@ package tsd
 
 import (
 	"Nextlaunch/src/config"
+	"Nextlaunch/src/logging"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -20,6 +21,7 @@ func NewSnapiClient() *SnapiClient {
 			ticker:     time.NewTicker(time.Millisecond * 100),
 			shouldTick: true,
 			client:     &http.Client{},
+			logger:     logging.NewLogger("SNAPI Client"),
 		},
 	}
 
@@ -34,10 +36,10 @@ func NewSnapiClient() *SnapiClient {
 }
 
 func (c *SnapiClient) GetNewsArticles(limit int, offset int) *[]NewsArticle {
-	res, err := c.Get(config.SNAPIFullBaseURL + config.SNAPIVersion + "articles?limit=" + strconv.Itoa(limit) + "&offset=" + strconv.Itoa(offset))
+	res, err := c.Get(config.SNAPIFullBaseURL + "articles?limit=" + strconv.Itoa(limit) + "&offset=" + strconv.Itoa(offset))
 
 	if err != nil {
-		c.logger.Fatal(err)
+		c.logger.Error(err)
 		return nil
 	}
 
@@ -47,8 +49,9 @@ func (c *SnapiClient) GetNewsArticles(limit int, offset int) *[]NewsArticle {
 			c.logger.Fatal(err)
 		}
 	}(res.Body)
+
 	if res.StatusCode != 200 {
-		c.logger.Fatal(err)
+		c.logger.Errorf("Status code %d", res.StatusCode)
 		return nil
 	}
 
@@ -58,7 +61,7 @@ func (c *SnapiClient) GetNewsArticles(limit int, offset int) *[]NewsArticle {
 	err = decoder.Decode(&response)
 
 	if err != nil {
-		c.logger.Fatal(err)
+		c.logger.Error(err)
 		return nil
 	}
 	return &response.Results
