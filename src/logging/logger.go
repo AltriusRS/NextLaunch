@@ -49,10 +49,6 @@ var MuteStdout = false
 // GlobalOutput is a global output that can be used to log messages
 // without having to create a new output
 
-const GlobalOutput = &Output{
-	inner: log.New(os.Stdout, "[Global]: ", log.Lshortfile),
-}
-
 func NewFileOutput(source string, module string) *Output {
 
 	file, err := os.OpenFile(source, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
