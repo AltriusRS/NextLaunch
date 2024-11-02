@@ -106,18 +106,6 @@ func LoadConfig() {
 
 	logger.Log("Config loaded")
 	logger.Debugf("Config is version %d", Config.Spec)
-
-	//ApplyMigrations(&Config)
-
-	//structMap, err := StructToMap(DefaultConfig, "")
-
-	//if err != nil {
-	//	logger.Fatal(err)
-	//}
-	//
-	//for k, v := range structMap {
-	//	logger.Debugf("%s: %v", k, v)
-	//}
 }
 
 /*
@@ -196,9 +184,16 @@ func PrepConfigDirectory() string {
 		if err != nil {
 			logger.Fatal(errors.NewError(errors.ErrorConfigDirectoryNotFound, err, true))
 		}
-		file, err = os.Create(filepath.Join(configDir, "config.toml"))
 	} else if err != nil {
 		logger.Fatal(err)
+	}
+
+	if _, err := os.Stat(filepath.Join(configDir, "config.toml")); os.IsNotExist(err) {
+		logger.Debug("Creating config file")
+		file, err = os.Create(filepath.Join(configDir, "config.toml"))
+		if err != nil {
+			logger.Fatal(err)
+		}
 	}
 
 	if err != nil {

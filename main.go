@@ -4,7 +4,7 @@ import (
 	"Nextlaunch/src/config"
 	"Nextlaunch/src/logging"
 	"Nextlaunch/src/tsd"
-	"time"
+	"Nextlaunch/src/tui"
 )
 
 var logger *logging.Logger
@@ -52,6 +52,18 @@ func main() {
 			logger.Log(article.Title)
 		}*/
 
-	time.Sleep(time.Second * 2)
+	config.LoadConfig()
 
+	context := tui.Model{
+		KeybindingManager: tui.NewKeybindManager(),
+		CursorPosition:    tui.CursorPosition{0, 0},
+		CursorBlink:       false,
+		CursorVisible:     false,
+		CursorStyle:       tui.CursorStyleNone,
+		Data:              make(map[string]interface{}),
+		Frame:             tui.NewWindow("NextLaunch", 10, 10, false),
+	}
+
+	tui.StartBubbletea(&context)
+	logging.ShouldExit = true
 }

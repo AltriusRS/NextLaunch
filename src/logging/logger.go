@@ -46,6 +46,8 @@ func EnterTui() {
 // MuteStdout Global variable to mute logging to stdout (used for showing the tui)
 var MuteStdout = false
 
+var ShouldExit = false
+
 // GlobalOutput is a global output that can be used to log messages
 // without having to create a new output
 
@@ -244,13 +246,14 @@ func (logger *Logger) Flush() {
 
 func (logger *Logger) run() {
 	go func() {
-		for !logger.panicked && !logger.muted {
+		for !logger.panicked && !logger.muted && !ShouldExit {
 			select {
 			case message := <-logger.queue:
 				for _, output := range logger.outputs {
 					output.Println(message)
 				}
 			default:
+				time.Sleep(time.Millisecond * 10)
 				continue
 			}
 		}
