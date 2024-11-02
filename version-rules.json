@@ -4,7 +4,7 @@
   "email": "tom.b.2k2@gmail.com",
   "schemeDefinition": "major.minor[.build][->patch]",
   "versionFile": "./version.txt",
-  "files": [],,
+  "files": [],
   "rules": [
     {
       "trigger": "commit",
