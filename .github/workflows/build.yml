@@ -36,7 +36,7 @@ jobs:
           fi
 
 # Build artifacts for linux
-  build-linux-arm64:
+  build-linux-amd64:
     needs: pre-build
     runs-on: ubuntu-latest
     steps:
