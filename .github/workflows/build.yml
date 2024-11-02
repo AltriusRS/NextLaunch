@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Bump Versions
-        uses: michmich112/version-bumper@master
-        with:
-          options-file: './version-rules.json'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+#        This was disabled because it was causing the build to hang
+#      - name: Bump Versions
+#        uses: michmich112/version-bumper@master
+#        with:
+#          options-file: './version-rules.json'
+#          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get build version
         id: build-version

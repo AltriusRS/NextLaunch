@@ -64,4 +64,5 @@ NextLaunch is licensed under the [MIT License](https://github.com/NextLaunch/Nex
 
 ## Data Sources
 NextLaunch is proud to be using data from the open source community.
+
 [![The Space Devs](https://media.discordapp.net/attachments/679427997190848540/883074110652043274/LL2_HistoricLaunches16by9.png?ex=6726805a&is=67252eda&hm=1fb0c5a2cad43b2023169c05587ee122f2653b010fa4dc9fba5eceb39c7adda1&=&format=webp&quality=lossless&width=810&height=456)](https://thespacedevs.com/)
