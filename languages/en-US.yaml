@@ -1,0 +1,57 @@
+Code: en-US
+Name: English (Simplified)
+NativeName: English
+DateTime:
+  Month:
+    - January
+    - February
+    - March
+    - April
+    - May
+    - June
+    - July
+    - August
+    - September
+    - October
+    - November
+    - December
+  Weekday:
+    - Sunday
+    - Monday
+    - Tuesday
+    - Wednesday
+    - Thursday
+    - Friday
+    - Saturday
+  AbbreviatedWeekday:
+    - Sun
+    - Mon
+    - Tue
+    - Wed
+    - Thu
+    - Fri
+    - Sat
+  CalendarScope:
+    StartDay: 1
+  AmPm:
+    - AM
+    - PM
+  Period:
+    Second: second
+    Seconds: seconds
+    Minute: minute
+    Minutes: minutes
+    Hour: hour
+    Hours: hours
+    Day: day
+    Days: days
+    Week: week
+    Weeks: weeks
+    Month: month
+    Months: months
+    Year: year
+    Years: years
+  Format:
+    DateFormat: MM/dd/yyyy
+    TimeFormat: h:mm:ss tt
+    DateTimeFormat: MM/dd/yyyy h:mm:ss tt
