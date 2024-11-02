@@ -1,0 +1,28 @@
+{
+  "scheme": "custom",
+  "username": "Altrius",
+  "email": "tom.b.2k2@gmail.com",
+  "schemeDefinition": "major.minor[.build][->patch]",
+  "versionFile": "./version.txt",
+  "rules": [
+    {
+      "trigger": "commit",
+      "bump": "build"
+    },
+    {
+      "trigger": "commit",
+      "bump": "minor",
+      "branch": "master",
+      "reset": "build"
+    },
+    {
+      "trigger": "commit",
+      "bump": "major",
+      "branch": "release",
+      "reset": [
+        "minor",
+        "build"
+      ]
+    }
+  ]
+}
