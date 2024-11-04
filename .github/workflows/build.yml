@@ -27,7 +27,6 @@ jobs:
           cache: true
 
       - name: Build
-        env: ${{ matrix.env }}
         run: go run build.go -os ${{ matrix.os }} -arch ${{ matrix.arch }}
 
       - name: Upload a Build Artifact (Windows)
