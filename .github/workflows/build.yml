@@ -8,105 +8,47 @@ on:
   pull_request:
 
 jobs:
-  pre-build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-#        This was disabled because it was causing the build to hang
-#      - name: Bump Versions
-#        uses: michmich112/version-bumper@master
-#        with:
-#          options-file: './version-rules.json'
-#          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get build version
-        id: build-version
-        uses: michmich112/extract-version@main
-        with:
-          version-file: './version.txt'
-          schema: major.minor.build
-
-      - name: Set prerelease
-        id: prerelease
-        run: |
-          if [[ "${{ steps.build-version.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "prerelease=false" >> $GITHUB_OUTPUT
-          else
-            echo "prerelease=true" >> $GITHUB_OUTPUT
-          fi
-
-# Build artifacts for linux
-  build-linux-amd64:
-    needs: pre-build
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - { runner: macos-latest,  os: darwin,  arch: amd64 }
+          - { runner: macos-latest,  os: darwin,  arch: arm64 }
+          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
+          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
+          - { runner: ubuntu-latest, os: windows, arch: amd64 }
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - uses: actions/setup-go@v4
         with:
-          go-version: '1.22.5'
+          go-version: '1.23'
+          cache: true
 
       - name: Build
-        run: go build -v -ldflags="-s -w -X 'main.version=1.0.0'" -o NextLaunch
+        env: ${{ matrix.env }}
+        run: go run build.go -os ${{ matrix.os }} -arch ${{ matrix.arch }}
 
-      - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v3.1.3
+      - name: Upload a Build Artifact (Windows)
+        uses: actions/upload-artifact@v3.1.2
+        if: ${{ matrix.os == 'windows' }}
         with:
-          name: NextLaunch-linux-arm64
-          path: NextLaunch
-          retention-days: 5
+          name: NextLaunch-${{ matrix.os }}-${{ matrix.arch }}.exe
+          path: NextLaunch-${{ matrix.os }}-${{ matrix.arch }}.exe
+          retention-days: 1
 
-# Build artifacts for windows
-  build-windows-amd64:
-    needs: pre-build
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
+      - name: Upload a Build Artifact (Other)
+        uses: actions/upload-artifact@v3.1.2
+        if: ${{ matrix.os != 'windows' }}
         with:
-          go-version: '1.22.5'
-
-      - name: Build
-        run: go build -v -ldflags="-s -w -X 'main.version=1.0.0'" -o NextLaunch.exe
-
-      - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v3.1.3
-        with:
-          name: NextLaunch-windows-amd64.exe
-          path: NextLaunch.exe
-          retention-days: 5
-
-
-# Build artifacts for MacOS
-# MacOS is now purely arm64 based, so there is no need to build for MacOS amd64
-  build-macos-arm64:
-    needs: pre-build
-    runs-on: macos-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.22.5'
-
-      - name: Build
-        run: go build -v -ldflags="-s -w -X 'main.version=1.0.0'" -o NextLaunch
-
-      - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v3.1.3
-        with:
-          name: NextLaunch-macos-arm64
-          path: NextLaunch
-          retention-days: 5
-
+          name: NextLaunch-${{ matrix.os }}-${{ matrix.arch }}
+          path: NextLaunch-${{ matrix.os }}-${{ matrix.arch }}
+          retention-days: 1
 
 
   release:
-    needs: [pre-build, build-linux-amd64, build-windows-amd64, build-macos-arm64]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
