@@ -5,6 +5,7 @@ import (
 	"Nextlaunch/src/logging"
 	"Nextlaunch/src/tsd"
 	"Nextlaunch/src/tui"
+	"Nextlaunch/src/tui/widgets"
 )
 
 var logger *logging.Logger
@@ -32,25 +33,6 @@ func main() {
 	snapi = *tsd.NewSnapiClient()
 
 	logger.Log("Starting application")
-	/*
-		launches := ll2.GetLaunches(10, 0)
-
-		if launches == nil {
-			logger.Log("No launches found")
-			return
-		}
-
-		logger.Log("Found " + strconv.Itoa(len(*launches)) + " launches")
-
-		for _, launch := range *launches {
-			logger.Log(launch.ID + " - " + launch.Name + " - " + launch.Status.Name)
-		}
-
-		articles := snapi.GetNewsArticles(10, 0)
-
-		for _, article := range *articles {
-			logger.Log(article.Title)
-		}*/
 
 	config.LoadConfig()
 
@@ -61,7 +43,10 @@ func main() {
 		CursorVisible:     false,
 		CursorStyle:       tui.CursorStyleNone,
 		Data:              make(map[string]interface{}),
-		Frame:             tui.NewWindow("NextLaunch", 10, 10, false),
+		LL2:               ll2,
+		Snapi:             snapi,
+		Page:              0,
+		Frame:             widgets.NewWindow("NextLaunch", 10, 10, false),
 	}
 
 	tui.StartBubbletea(&context)

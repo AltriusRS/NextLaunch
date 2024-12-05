@@ -45,6 +45,7 @@ var DefaultConfig = Configuration{
 		"launch.open":      []string{"lo"},
 		"launch.previous":  []string{"lp"},
 		"launch.refresh":   []string{"lr"},
+		"launch.filter":    []string{"lf"},
 		"news.detailed":    []string{"nd"},
 		"news.next":        []string{"nn"},
 		"news.open":        []string{"no"},

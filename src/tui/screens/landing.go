@@ -1,5 +1,11 @@
 package screens
 
-func LandingScreen() {
+import (
+	"Nextlaunch/src/tui/widgets"
+)
 
+func LandingScreen(ctx RenderContext) widgets.Renderer {
+	window := widgets.NewWindow("Landing", 80, 20, true)
+
+	return window
 }

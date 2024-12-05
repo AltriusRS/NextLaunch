@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"Nextlaunch/src/tsd"
+	"Nextlaunch/src/tui/screens"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -28,7 +30,10 @@ type Model struct {
 	CursorVisible     bool
 	CursorStyle       CursorStyle
 	Data              map[string]interface{}
+	Page              int
 	Frame             Renderer
+	LL2               tsd.LL2Client
+	Snapi             tsd.SnapiClient
 }
 type (
 	tickMsg  struct{}
@@ -43,7 +48,7 @@ type (
 //}
 
 func (m *Model) tick() tea.Cmd {
-	return tea.Tick(time.Second/60, func(time.Time) tea.Msg {
+	return tea.Tick(time.Second/30, func(time.Time) tea.Msg {
 		return tickMsg{}
 	})
 }
@@ -68,6 +73,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
+		//case "ctrl+h", "?":
+		//m.KeybindingManager.ShowHelp()
 		default:
 		}
 	case frameMsg:
@@ -84,5 +91,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
+	switch m.Page {
+	case 0:
+		screens.LandingScreen(m)
+	default:
+		panic("Invalid page")
+	}
 	return m.Frame.Render(m)
 }

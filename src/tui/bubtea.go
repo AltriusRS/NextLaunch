@@ -14,12 +14,3 @@ func StartBubbletea(ctx *Model) {
 		fmt.Println("could not start program:", err)
 	}
 }
-
-type Renderer interface {
-	Render(m *Model) string
-	Clear()
-	SetWidth(width int)
-	SetHeight(height int)
-	SetActive(active bool)
-	Size() (int, int)
-}

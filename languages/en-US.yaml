@@ -1,7 +1,20 @@
+# This file is utf-8 encoded and YAML formatted. Please use spaces, not tabs, for indentation.
+# Please leave a blank line at the end of this file.
+# For more information about YAML, see https://yaml.org/
+# For more information about translating, see https://github.com/altriusrs/nextlaunch/wiki/Translations
+
+# ISO 639-1 Code: en-US
 Code: en-US
+
+# English name of the language (for display purposes)
 Name: English (Simplified)
+
+# Name of the language to native speakers (for display purposes)
 NativeName: English
+
+# General language information about times and dates
 DateTime:
+  # Month names in order, starting at january (0)
   Month:
     - January
     - February
@@ -15,6 +28,7 @@ DateTime:
     - October
     - November
     - December
+  # Weekday names in order, starting at sunday (0)
   Weekday:
     - Sunday
     - Monday
@@ -23,6 +37,8 @@ DateTime:
     - Thursday
     - Friday
     - Saturday
+
+  # Abbreviated weekday names in order, starting at january (0)
   AbbreviatedWeekday:
     - Sun
     - Mon
@@ -31,11 +47,21 @@ DateTime:
     - Thu
     - Fri
     - Sat
+
+  # General calendar information (which day is the first day of the week)
   CalendarScope:
+
+    # Which day is the first day of the week (0 = Sunday, 1 = Monday, etc.)
     StartDay: 1
+
+  # General time format information
+
+  # What the terms for morning and afternoon times are (in 12-hour format)
   AmPm:
     - AM
     - PM
+
+  # The names of the units of times from Seconds to Years
   Period:
     Second: second
     Seconds: seconds
@@ -51,7 +77,87 @@ DateTime:
     Months: months
     Year: year
     Years: years
+
+  # Date and time format strings
   Format:
     DateFormat: MM/dd/yyyy
     TimeFormat: h:mm:ss tt
     DateTimeFormat: MM/dd/yyyy h:mm:ss tt
+
+# Key binding titles (for display purposes)
+# the "Key" is the keybinding name, and the "Action" is a description of what it does
+# eg:
+#   - Key: launch.detailed
+#     Action: Open Detailed Launch View
+# where "launch.detailed" is the internal name of the keybinding
+# see https://github.com/altriusrs/nextlaunch/wiki/Keybindings for a complete list of keybindings
+KeyBindings:
+  - Key: launch.detailed
+    Action: Detailed Launch View
+  - Key: launch.next
+    Action: Next Launch
+  - Key: launch.previous
+    Action: Previous Launch
+  - Key: launch.refresh
+    Action: Refresh Launches
+  - Key: launch.filter
+    Action: Filter Launches
+  - Key: news.detailed
+    Action: Detailed View
+  - Key: news.open
+    Action: Open In Browser
+  - Key: news.next
+    Action: Next Article
+  - Key: news.previous
+    Action: Previous Article
+  - Key: news.refresh
+    Action: Refresh Articles
+  - Key: program.about
+    Action: About
+  - Key: program.down
+    Action: Move Down
+  - Key: program.end
+    Action: Move to End
+  - Key: program.enter
+    Action: Enter
+  - Key: program.exit
+    Action: Exit
+  - Key: program.help
+    Action: Help
+  - Key: program.home
+    Action: Move to Home
+  - Key: program.launch
+    Action: Launch
+  - Key: program.left
+    Action: Move Left
+  - Key: program.news
+    Action: News
+  - Key: program.open
+    Action: Open
+  - Key: program.pagedown
+    Action: Page Down
+  - Key: program.pageup
+    Action: Page Up
+  - Key: program.quit
+    Action: Quit
+  - Key: program.right
+    Action: Move Right
+  - Key: program.settings
+    Action: Open Settings
+  - Key: program.up
+    Action: Move Up
+  - Key: settings.open
+    Action: Open Settings
+  - Key: settings.refresh
+    Action: Refresh Settings
+  - Key: settings.reset
+    Action: Reset Settings
+# General UI text elements which are translatable
+Interface:
+  ## Landing page elements
+  - Key: landing.launch.title
+    Value: "Upcoming Launches"
+  - Key: launch.detailed_view.title
+    Value: "Detailed Launch View: %s"
+  - Key: launch.detailed_view.launch.title
+    Value: "Launch: %s"

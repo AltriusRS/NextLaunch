@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 )
 
 var Version = "0.0.1"
@@ -18,6 +19,9 @@ var SNAPIBaseURL = "https://api.spaceflightnewsapi.net/v"
 var SNAPIFullBaseURL = SNAPIBaseURL + SNAPIVersion + "/"
 var BuildDate = "unset"
 var DevBuild = "true"
+var BuildCommit = "none"
+var BuildOS = runtime.GOOS
+var BuildArch = runtime.GOARCH
 
 //goland:noinspection GoBoolExpressions
 var IsDev = DevBuild == "true" // This is not a constant because it can be changed at compile time
@@ -32,7 +36,10 @@ func LoadConfig() {
 	// Debug some information
 	logger.Debugf("Version is %s", Version)
 	logger.Debugf("Build date is %s", BuildDate)
+	logger.Debugf("Build commit is %s", BuildCommit)
 	logger.Debugf("Dev build is %s", DevBuild)
+	logger.Debugf("Build OS is %s", BuildOS)
+	logger.Debugf("Build Arch is %s", BuildArch)
 
 	// Prepare the configuration directory
 	configPath, err := filepath.Abs(path.Join(PrepConfigDirectory(), "config.toml"))
