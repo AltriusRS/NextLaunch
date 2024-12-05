@@ -13,11 +13,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - { runner: macos-latest,  os: darwin,  arch: amd64 }
-          - { runner: macos-latest,  os: darwin,  arch: arm64 }
-          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
-          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
-          - { runner: ubuntu-latest, os: windows, arch: amd64 }
+#          - { runner: macos-latest,  os: darwin,  arch: amd64 }
+#          - { runner: macos-latest,  os: darwin,  arch: arm64 }
+#          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
+#          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
+#          - { runner: ubuntu-latest, os: windows, arch: amd64 }
     steps:
       - uses: actions/checkout@v4
 
@@ -34,7 +34,7 @@ jobs:
         if: ${{ matrix.os == 'windows' }}
         with:
           name: NextLaunch-${{ matrix.os }}-${{ matrix.arch }}.exe
-          path: NextLaunch-${{ matrix.os }}-${{ matrix.arch }}.exe
+          path: binaries
           retention-days: 1
 
       - name: Upload a Build Artifact (Other)
@@ -42,7 +42,7 @@ jobs:
         if: ${{ matrix.os != 'windows' }}
         with:
           name: NextLaunch-${{ matrix.os }}-${{ matrix.arch }}
-          path: NextLaunch-${{ matrix.os }}-${{ matrix.arch }}
+          path: binaries
           retention-days: 1
 
 
@@ -55,15 +55,15 @@ jobs:
       - name: Download a Build Artifact
         uses: actions/download-artifact@v3.0.2
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          name: NextLaunch ${{ needs.pre-build.outputs.version }}
-          tag_name: v${{ needs.pre-build.outputs.version }}
-          files: |
-            NextLaunch-linux-amd64/NextLaunch
-            NextLaunch-windows-amd64.exe/NextLaunch.exe
-            NextLaunch-macos-amd64/NextLaunch
-          draft: true
-          prerelease: ${{ needs.pre-build.outputs.prerelease }}
-          generate_release_notes: true
+#      - name: Create Release
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          name: NextLaunch ${{ needs.pre-build.outputs.version }}
+#          tag_name: v${{ needs.pre-build.outputs.version }}
+#          files: |
+#            binaries/NextLaunch
+#            binaries/NextLaunch.exe
+#            binaries/NextLaunch
+#          draft: true
+#          prerelease: ${{ needs.pre-build.outputs.prerelease }}
+#          generate_release_notes: true
