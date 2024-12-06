@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download a Build Artifact
-        uses: actions/download-artifact@v3.0.2
+        uses: actions/download-artifact@v4
         with:
           path: binaries
           merge-multiple: true
@@ -68,3 +68,4 @@ jobs:
           draft: true
           prerelease: ${{ needs.build.outputs.version == 'dev-*' }}
           generate_release_notes: true
+          failed_on_unmatched_files: true
