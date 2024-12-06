@@ -52,19 +52,15 @@ jobs:
     steps:
       - name: Download a Build Artifact
         uses: actions/download-artifact@v3.0.2
-#        with:
-#          path: binaries
+        with:
+          merge-multiple: true
 
-      - name: Display structure of downloaded files
-        run: ls -R
-#        working-directory: binaries
-
-#      - name: Create Release
-#        uses: softprops/action-gh-release@v1
-#        with:
-#          name: NextLaunch ${{ needs.build.outputs.version }}
-#          tag_name: v${{ needs.build.outputs.version }}
-#          files: "/*"
-#          draft: true
-#          prerelease: ${{ needs.build.outputs.version == 'dev-*' }}
-#          generate_release_notes: true
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: NextLaunch ${{ needs.build.outputs.version }}
+          tag_name: v${{ needs.build.outputs.version }}
+          files: "NextLaunch_*"
+          draft: true
+          prerelease: ${{ needs.build.outputs.version == 'dev-*' }}
+          generate_release_notes: true
