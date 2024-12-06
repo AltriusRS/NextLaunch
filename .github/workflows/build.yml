@@ -68,9 +68,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: NextLaunch ${{ needs.build.outputs.NEXTLAUNCH_VERSION }}
-          tag_name: v${{ steps.build.outputs.NEXTLAUNCH_VERSION }}
+          tag_name: v${{ needs.build.outputs.NEXTLAUNCH_VERSION }}
           files: binaries/*
           draft: true
-          prerelease: ${{ steps.build.outputs.NEXTLAUNCH_VERSION == 'dev-*' }}
+          prerelease: ${{ needs.build.outputs.NEXTLAUNCH_VERSION == 'dev-*' }}
           generate_release_notes: true
           failed_on_unmatched_files: true
