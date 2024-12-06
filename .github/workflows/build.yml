@@ -63,7 +63,7 @@ jobs:
         run: echo "NEXTLAUNCH_VERSION=${{ steps.build.outputs.NEXTLAUNCH_VERSION }}"
 
       - name: Debug compilation
-        run: echo ${{ needs.build.outputs }}
+        run: echo ${{ toJSON(needs.build.outputs) }}
 
 #      - name: Create Release
 #        uses: softprops/action-gh-release@v1
