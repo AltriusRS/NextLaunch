@@ -1,8 +1,11 @@
 package main
 
 import (
-	"bufio"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -11,14 +14,20 @@ import (
 
 var (
 	version         = "dev"
+	tag             = "none"
+	branchName      = "none"
 	commit          = "none"
 	date            = "unknown"
 	arch            = "amd64"
 	operatingSystem = "linux"
 	fileName        = "NextLaunch"
+	metadata        = ""
 )
 
 func main() {
+
+	manifest := getBuildManifest()
+
 	handle, err := os.Create("./output.txt")
 	if err != nil {
 		panic(err)
@@ -33,12 +42,29 @@ func main() {
 
 	args := os.Args[1:]
 
-	for _, arg := range args {
-		var value string
-		var key string
+	var value string
+	var key string
+	greedy := false
 
-		value = strings.Split(arg, "=")[1]
-		key = strings.Split(arg, "=")[0]
+	for _, arg := range args {
+
+		if strings.Contains(arg, "=") {
+			value = strings.Split(arg, "=")[1]
+			key = strings.Split(arg, "=")[0]
+		} else {
+			if greedy {
+				value = arg
+				greedy = false
+			} else {
+				key = arg
+				value = "GREEDY"
+			}
+		}
+
+		if value == "GREEDY" {
+			greedy = true
+			continue
+		}
 
 		switch key {
 		case "--os":
@@ -47,12 +73,22 @@ func main() {
 		case "--arch":
 			arch = value
 			break
+		case "--metadata":
+			metadata = "+" + value
+
+			break
 		default:
 			println("Unknown argument: " + arg + " ('" + value + "') - ignoring")
 		}
 	}
 
-	branchName, err := getGitBranch()
+	tag, err = getGitTag()
+
+	if err != nil {
+		tag = "0.0.0"
+	}
+
+	branchName, err = getGitBranch()
 
 	commit, err = getGitCommit()
 	if err != nil {
@@ -63,29 +99,32 @@ func main() {
 		date = "unknown"
 	}
 
-	version = strings.ReplaceAll(version, "\n", "")
-	branchName = strings.ReplaceAll(branchName, "\n", "")
-	commit = strings.ReplaceAll(commit, "\n", "")
-	date = strings.ReplaceAll(date, "\n", "")
+	manifest.Tag = strings.ReplaceAll(tag, "\n", "")
+	manifest.Version = strings.ReplaceAll(tag, "\n", "")
+	manifest.Branch = strings.ReplaceAll(branchName, "\n", "")
+	manifest.Commit = strings.ReplaceAll(commit, "\n", "")
+	manifest.Date = strings.ReplaceAll(date, "\n", "")
+	manifest.Metadata = strings.ReplaceAll(metadata, "\n", "")
 
-	properDate, err := time.Parse("2006-01-02 15:04:05 -0700", date)
+	if len(manifest.Files) == 0 {
+		date = strings.ReplaceAll(date, "\n", "")
 
-	if err != nil {
-		println(err.Error())
-	} else {
-		date = properDate.Format("2006-01-02_15:04")
+		properDate, err := time.Parse("2006-01-02 15:04:05 -0700", date)
+
+		if err != nil {
+			println(err.Error())
+		} else {
+			manifest.Date = properDate.Format("2006-01-02_15:04")
+		}
+
+		manifest.Version = fmt.Sprintf("%s-%s.%s%s", manifest.Version, manifest.Branch, manifest.Commit, manifest.Metadata)
 	}
-
-	version = fmt.Sprintf("%s-%s-%s+%s", version, branchName, commit, date)
 
 	fileName = fmt.Sprintf("%s_%s_%s", fileName, operatingSystem, arch)
 
 	if operatingSystem == "windows" {
 		fileName += ".exe"
 	}
-
-	printBuildInfo()
-	compile()
 
 	if _, err = handle.WriteString("NEXTLAUNCH_VERSION=" + version + "\r\n"); err != nil {
 		fmt.Println("Failed to write output variable: ('NEXTLAUNCH_VERSION') ", err.Error())
@@ -107,43 +146,187 @@ func main() {
 		println(err.Error())
 	}
 
-	// read all lines from file
-	// and print them
+	printBuildInfo(manifest)
+	compile(manifest)
 
-	scanner := bufio.NewScanner(handle)
-	for scanner.Scan() {
-		fmt.Println(scanner.Text())
+	err = appendBuildManifest(&manifest, "binaries/"+fileName)
+
+	if err != nil {
+		println("Error appending manifest.json")
+	}
+
+	err = writeBuildManifest(manifest)
+	if err != nil {
+		println("Error writing manifest.json")
 	}
 }
 
+type Manifest struct {
+	Version  string         `json:"version"`
+	Tag      string         `json:"tag"`
+	Branch   string         `json:"branch"`
+	Commit   string         `json:"commit"`
+	Date     string         `json:"date"`
+	Metadata string         `json:"metadata"`
+	Files    []ManifestFile `json:"files"`
+}
+
+type ManifestFile struct {
+	Name   string `json:"name"`
+	Path   string `json:"path"`
+	Size   int    `json:"size"`
+	Arch   string `json:"arch"`
+	OS     string `json:"os"`
+	Sha256 string `json:"sha256"`
+}
+
+func getBuildManifest() Manifest {
+	var manifest Manifest
+
+	file, err := os.Open("manifest.json")
+	if err != nil {
+		println("Error opening manifest.json")
+		return manifest
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
+
+	byteValue, _ := io.ReadAll(file)
+
+	err = json.Unmarshal(byteValue, &manifest)
+	if err != nil {
+		println("Error unmarshalling manifest.json")
+
+		manifest.Files = []ManifestFile{}
+
+		return manifest
+	}
+
+	if manifest.Files == nil {
+		manifest.Files = []ManifestFile{}
+	}
+
+	return manifest
+}
+
+func appendBuildManifest(manifest *Manifest, path string) error {
+	file, err := os.Open(path) // Open the binary file
+	if err != nil {
+		println("Error opening binary file")
+		return err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
+
+	hasher := sha256.New()
+
+	_, err = io.Copy(hasher, file)
+	if err != nil {
+		return err
+	}
+
+	stat, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	manifest.Files = append(manifest.Files, ManifestFile{
+		Name:   path,
+		Path:   path,
+		Size:   int(stat.Size()),
+		Arch:   arch,
+		OS:     operatingSystem,
+		Sha256: hex.EncodeToString(hasher.Sum(nil)),
+	})
+
+	return nil
+}
+
+func writeBuildManifest(manifest Manifest) error {
+	file, err := os.Create("manifest.json")
+	if err != nil {
+		println("Error creating manifest.json")
+		return err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	err = encoder.Encode(manifest)
+	if err != nil {
+		return err
+	}
+	err = file.Sync()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func getGitTag() (string, error) {
+	println("Getting git tag")
+	cmd := "git describe --tags --abbrev=0"
+	out, err := runCommand(cmd)
+	if err != nil {
+		println("Error getting git tag")
+		return "none", err
+	}
+	println("Git tag: " + out)
+	return out, nil
+}
+
 func getGitBranch() (string, error) {
+	println("Getting git branch")
 	cmd := "git rev-parse --abbrev-ref HEAD"
 	out, err := runCommand(cmd)
 	if err != nil {
+		println("Error getting git branch")
 		return "none", err
 	}
+	println("Git branch: " + out)
 	return out, nil
 }
 
 func getGitCommit() (string, error) {
+	println("Getting git commit")
 	cmd := "git rev-parse --short HEAD"
 	out, err := runCommand(cmd)
 	if err != nil {
+		println("Error getting git commit")
 		return "none", err
 	}
+	println("Git commit: " + out)
 	return out, nil
 }
 
 func getGitDate() (string, error) {
+	println("Getting git date")
 	cmd := "git show -s --format=%ci HEAD"
 	out, err := runCommand(cmd)
+
 	if err != nil {
+		println("Error getting git date")
 		return "unknown", err
 	}
+	println("Git date: " + out)
 	return out, nil
 }
 
 func runCommand(cmd string) (string, error) {
+	println("Running command: " + cmd)
 	out, err := exec.Command("sh", "-c", cmd).Output()
 
 	if err != nil {
@@ -159,22 +342,25 @@ func runCommand(cmd string) (string, error) {
 	return string(out), nil
 }
 
-func printBuildInfo() {
+func printBuildInfo(manifest Manifest) {
 	println("Build Info:")
-	println("  Version:  " + version)
-	println("  Commit:   " + commit)
-	println("  Date:     " + date)
+	println("  Version:  " + manifest.Version)
+	println("  Tag:      " + manifest.Tag)
+	println("  Branch:   " + manifest.Branch)
+	println("  Metadata: " + manifest.Metadata)
+	println("  Commit:   " + manifest.Commit)
+	println("  Date:     " + manifest.Date)
 	println("  Arch:     " + arch)
 	println("  OS:       " + operatingSystem)
 	println("  Filename: " + fileName)
 }
 
-func compile() {
+func compile(manifest Manifest) {
 	println("Compiling...")
 	command := "go build -ldflags=\""
-	command += "-X 'Nextlaunch/src/config.Version=" + version + "'"
-	command += " -X 'Nextlaunch/src/config.BuildCommit=" + commit + "'"
-	command += " -X 'Nextlaunch/src/config.BuildDate=" + date + "'"
+	command += "-X 'Nextlaunch/src/config.Version=" + manifest.Version + "'"
+	command += " -X 'Nextlaunch/src/config.BuildCommit=" + manifest.Commit + "'"
+	command += " -X 'Nextlaunch/src/config.BuildDate=" + manifest.Date + "'"
 	command += " -X 'Nextlaunch/src/config.BuildOS=" + operatingSystem + "'"
 	command += " -X 'Nextlaunch/src/config.BuildArch=" + arch + "'"
 

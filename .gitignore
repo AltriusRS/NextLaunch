@@ -28,3 +28,7 @@ config.yaml
 
 
 artifacts/
+binaries/
+
+output.txt
+manifest.json
