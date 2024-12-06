@@ -36,6 +36,14 @@ jobs:
       - name: Debug compilation
         run: echo "NEXTLAUNCH_VERSION=${{ steps.build.outputs.NEXTLAUNCH_VERSION }}"
 
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: ${{ steps.build.outputs.NEXTLAUNCH_FILENAME }}
+          path: binaries
+          retention-days: 1
+          if-no-files-found: error
+
 
   release:
     if: github.event_name == 'push'
