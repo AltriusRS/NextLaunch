@@ -185,12 +185,6 @@ func main() {
 	if err != nil {
 		return
 	}
-
-	err = handle.Close()
-
-	if err != nil {
-		return
-	}
 }
 
 type Manifest struct {
