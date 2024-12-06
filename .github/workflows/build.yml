@@ -18,6 +18,11 @@ jobs:
 #          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
 #          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
           - { runner: ubuntu-latest, os: windows, arch: amd64 }
+    outputs:
+      NEXTLAUNCH_VERSION: ${{ steps.build.outputs.NEXTLAUNCH_VERSION }}
+      NEXTLAUNCH_COMMIT: ${{ steps.build.outputs.NEXTLAUNCH_COMMIT }}
+      NEXTLAUNCH_DATE: ${{ steps.build.outputs.NEXTLAUNCH_DATE }}
+      NEXTLAUNCH_BRANCH: ${{ steps.build.outputs.NEXTLAUNCH_BRANCH }}
     steps:
       - uses: actions/checkout@v4
 
@@ -65,13 +70,13 @@ jobs:
       - name: Debug compilation
         run: echo ${{ toJSON(needs.build) }}
 
-#      - name: Create Release
-#        uses: softprops/action-gh-release@v1
-#        with:
-#          name: NextLaunch ${{ needs.build.outpu.outputs.version }}
-#          tag_name: v${{ steps.build.outputs.version }}
-#          files: binaries/*
-#          draft: true
-#          prerelease: ${{ steps.build.outputs.version == 'dev-*' }}
-#          generate_release_notes: true
-#          failed_on_unmatched_files: true
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: NextLaunch ${{ needs.build.outputs.NEXTLAUNCH_VERSION }}
+          tag_name: v${{ steps.build.outputs.NEXTLAUNCH_VERSION }}
+          files: binaries/*
+          draft: true
+          prerelease: ${{ steps.build.outputs.NEXTLAUNCH_VERSION == 'dev-*' }}
+          generate_release_notes: true
+          failed_on_unmatched_files: true
