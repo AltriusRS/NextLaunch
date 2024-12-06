@@ -13,11 +13,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - { runner: macos-latest,  os: darwin,  arch: amd64 }
+#          - { runner: macos-latest,  os: darwin,  arch: amd64 }
 #          - { runner: macos-latest,  os: darwin,  arch: arm64 }
 #          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
 #          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
-#          - { runner: ubuntu-latest, os: windows, arch: amd64 }
+          - { runner: ubuntu-latest, os: windows, arch: amd64 }
     steps:
       - uses: actions/checkout@v4
 
@@ -59,13 +59,19 @@ jobs:
       - name: List files
         run: ls -R
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          name: NextLaunch ${{ needs.build.outputs.version }}
-          tag_name: v${{ needs.build.outputs.version }}
-          files: binaries/*
-          draft: true
-          prerelease: ${{ needs.build.outputs.version == 'dev-*' }}
-          generate_release_notes: true
-          failed_on_unmatched_files: true
+      - name: Debug environment
+        run: echo "NEXTLAUNCH_VERSION=${{ steps.build.outputs.NEXTLAUNCH_VERSION }}"
+
+      - name: Debug compilation
+        run: echo ${{ needs.build.outputs }}
+
+#      - name: Create Release
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          name: NextLaunch ${{ needs.build.outpu.outputs.version }}
+#          tag_name: v${{ steps.build.outputs.version }}
+#          files: binaries/*
+#          draft: true
+#          prerelease: ${{ steps.build.outputs.version == 'dev-*' }}
+#          generate_release_notes: true
+#          failed_on_unmatched_files: true
