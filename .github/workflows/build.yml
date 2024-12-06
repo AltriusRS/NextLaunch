@@ -44,13 +44,12 @@ jobs:
     steps:
       - name: Download a Build Artifact
         uses: actions/download-artifact@v3.0.2
-        with:
-          name: *
-          path: binaries
+#        with:
+#          path: binaries
 
       - name: Display structure of downloaded files
         run: ls -R
-        working-directory: binaries
+#        working-directory: binaries
 
 #      - name: Create Release
 #        uses: softprops/action-gh-release@v1
