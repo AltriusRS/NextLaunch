@@ -127,16 +127,16 @@ func main() {
 		fileName += ".exe"
 	}
 
-	if _, err = handle.WriteString("NEXTLAUNCH_VERSION=" + version + "\r\n"); err != nil {
+	if _, err = handle.WriteString("NEXTLAUNCH_VERSION=" + manifest.Version + "\r\n"); err != nil {
 		fmt.Println("Failed to write output variable: ('NEXTLAUNCH_VERSION') ", err.Error())
 	}
-	if _, err = handle.WriteString("NEXTLAUNCH_COMMIT=" + commit + "\r\n"); err != nil {
+	if _, err = handle.WriteString("NEXTLAUNCH_COMMIT=" + manifest.Commit + "\r\n"); err != nil {
 		fmt.Println("Failed to write output variable: ('NEXTLAUNCH_COMMIT') ", err.Error())
 	}
-	if _, err = handle.WriteString("NEXTLAUNCH_DATE=" + date + "\r\n"); err != nil {
+	if _, err = handle.WriteString("NEXTLAUNCH_DATE=" + manifest.Date + "\r\n"); err != nil {
 		fmt.Println("Failed to write output variable: ('NEXTLAUNCH_DATE') ", err.Error())
 	}
-	if _, err = handle.WriteString("NEXTLAUNCH_BRANCH=" + branchName + "\r\n"); err != nil {
+	if _, err = handle.WriteString("NEXTLAUNCH_BRANCH=" + manifest.Branch + "\r\n"); err != nil {
 		fmt.Println("Failed to write output variable: ('NEXTLAUNCH_BRANCH') ", err.Error())
 	}
 	if _, err = handle.WriteString("NEXTLAUNCH_FILENAME=" + fileName + "\r\n"); err != nil {
