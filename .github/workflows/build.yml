@@ -16,7 +16,7 @@ jobs:
           - { runner: macos-latest,  os: darwin,  arch: amd64 }
           - { runner: macos-latest,  os: darwin,  arch: arm64 }
           - { runner: ubuntu-latest, os: linux,   arch: amd64 }
-          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
+          - { runner: ubuntu-latest, os: linux,   arch: arm64 }
           - { runner: ubuntu-latest, os: windows, arch: amd64 }
       max-parallel: 1
     outputs:
@@ -38,9 +38,6 @@ jobs:
       - name: Get build output
         id: build
         run: cat output.txt >> $GITHUB_OUTPUT
-
-      - name: Debug compilation
-        run: echo "NEXTLAUNCH_VERSION=${{ steps.build.outputs.NEXTLAUNCH_VERSION }}"
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
