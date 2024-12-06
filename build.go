@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -158,6 +159,14 @@ func main() {
 	err = writeBuildManifest(manifest)
 	if err != nil {
 		println("Error writing manifest.json")
+	}
+
+	println("Build Complete")
+
+	//	debug output file line by line
+	scanner := bufio.NewScanner(handle)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text())
 	}
 }
 
