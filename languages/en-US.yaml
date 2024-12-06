@@ -4,18 +4,18 @@
 # For more information about translating, see https://github.com/altriusrs/nextlaunch/wiki/Translations
 
 # ISO 639-1 Code: en-US
-Code: en-US
+code: en-US
 
 # English name of the language (for display purposes)
-Name: English (Simplified)
+name: English (Simplified)
 
 # Name of the language to native speakers (for display purposes)
-NativeName: English
+native_name: English
 
 # General language information about times and dates
-DateTime:
+date_time:
   # Month names in order, starting at january (0)
-  Month:
+  month:
     - January
     - February
     - March
@@ -29,7 +29,7 @@ DateTime:
     - November
     - December
   # Weekday names in order, starting at sunday (0)
-  Weekday:
+  weekday:
     - Sunday
     - Monday
     - Tuesday
@@ -39,7 +39,7 @@ DateTime:
     - Saturday
 
   # Abbreviated weekday names in order, starting at january (0)
-  AbbreviatedWeekday:
+  abbreviated_weekday:
     - Sun
     - Mon
     - Tue
@@ -48,116 +48,115 @@ DateTime:
     - Fri
     - Sat
 
-  # General calendar information (which day is the first day of the week)
-  CalendarScope:
+  # Which day is the first day of the week (0 = Sunday, 1 = Monday, etc.)
+  start_day: 1
 
-    # Which day is the first day of the week (0 = Sunday, 1 = Monday, etc.)
-    StartDay: 1
+
 
   # General time format information
 
   # What the terms for morning and afternoon times are (in 12-hour format)
-  AmPm:
+  am_pm:
     - AM
     - PM
 
   # The names of the units of times from Seconds to Years
-  Period:
-    Second: second
-    Seconds: seconds
-    Minute: minute
-    Minutes: minutes
-    Hour: hour
-    Hours: hours
-    Day: day
-    Days: days
-    Week: week
-    Weeks: weeks
-    Month: month
-    Months: months
-    Year: year
-    Years: years
+  period:
+    - second: second
+    - seconds: seconds
+    - minute: minute
+    - minutes: minutes
+    - hour: hour
+    - hours: hours
+    - day: day
+    - days: days
+    - week: week
+    - weeks: weeks
+    - month: month
+    - months: months
+    - year: year
+    - years: years
 
   # Date and time format strings
-  Format:
-    DateFormat: MM/dd/yyyy
-    TimeFormat: h:mm:ss tt
-    DateTimeFormat: MM/dd/yyyy h:mm:ss tt
+  format:
+    - date_format: MM/dd/yyyy
+    - time_format: h:mm:ss tt
+    - date_time_format: MM/dd/yyyy h:mm:ss tt
 
 # Key binding titles (for display purposes)
 # the "Key" is the keybinding name, and the "Action" is a description of what it does
 # eg:
-#   - Key: launch.detailed
-#     Action: Open Detailed Launch View
+#   - key: launch.detailed
+#     action: Open Detailed Launch View
 # where "launch.detailed" is the internal name of the keybinding
 # see https://github.com/altriusrs/nextlaunch/wiki/Keybindings for a complete list of keybindings
-KeyBindings:
-  - Key: launch.detailed
-    Action: Detailed Launch View
-  - Key: launch.next
-    Action: Next Launch
-  - Key: launch.previous
-    Action: Previous Launch
-  - Key: launch.refresh
-    Action: Refresh Launches
-  - Key: launch.filter
-    Action: Filter Launches
-  - Key: news.detailed
-    Action: Detailed View
-  - Key: news.open
-    Action: Open In Browser
-  - Key: news.next
-    Action: Next Article
-  - Key: news.previous
-    Action: Previous Article
-  - Key: news.refresh
-    Action: Refresh Articles
-  - Key: program.about
-    Action: About
-  - Key: program.down
-    Action: Move Down
-  - Key: program.end
-    Action: Move to End
-  - Key: program.enter
-    Action: Enter
-  - Key: program.exit
-    Action: Exit
-  - Key: program.help
-    Action: Help
-  - Key: program.home
-    Action: Move to Home
-  - Key: program.launch
-    Action: Launch
-  - Key: program.left
-    Action: Move Left
-  - Key: program.news
-    Action: News
-  - Key: program.open
-    Action: Open
-  - Key: program.pagedown
-    Action: Page Down
-  - Key: program.pageup
-    Action: Page Up
-  - Key: program.quit
-    Action: Quit
-  - Key: program.right
-    Action: Move Right
-  - Key: program.settings
-    Action: Open Settings
-  - Key: program.up
-    Action: Move Up
-  - Key: settings.open
-    Action: Open Settings
-  - Key: settings.refresh
-    Action: Refresh Settings
-  - Key: settings.reset
-    Action: Reset Settings
+key_bindings:
+  - key: launch.detailed
+    action: Detailed Launch View
+  - key: launch.next
+    action: Next Launch
+  - key: launch.previous
+    action: Previous Launch
+  - key: launch.refresh
+    action: Refresh Launches
+  - key: launch.filter
+    action: Filter Launches
+  - key: news.detailed
+    action: Detailed View
+  - key: news.open
+    action: Open In Browser
+  - key: news.next
+    action: Next Article
+  - key: news.previous
+    action: Previous Article
+  - key: news.refresh
+    action: Refresh Articles
+  - key: program.about
+    action: About
+  - key: program.down
+    action: Move Down
+  - key: program.end
+    action: Move to End
+  - key: program.enter
+    action: Enter
+  - key: program.exit
+    action: Exit
+  - key: program.help
+    action: Help
+  - key: program.home
+    action: Move to Home
+  - key: program.launch
+    action: Launch
+  - key: program.left
+    action: Move Left
+  - key: program.news
+    action: News
+  - key: program.open
+    action: Open
+  - key: program.pagedown
+    action: Page Down
+  - key: program.pageup
+    action: Page Up
+  - key: program.quit
+    action: Quit
+  - key: program.right
+    action: Move Right
+  - key: program.settings
+    action: Open Settings
+  - key: program.up
+    action: Move Up
+  - key: settings.open
+    action: Open Settings
+  - key: settings.refresh
+    action: Refresh Settings
+  - key: settings.reset
+    action: Reset Settings
 # General UI text elements which are translatable
-Interface:
+interface:
   ## Landing page elements
-  - Key: landing.launch.title
-    Value: "Upcoming Launches"
-  - Key: launch.detailed_view.title
-    Value: "Detailed Launch View: %s"
-  - Key: launch.detailed_view.launch.title
-    Value: "Launch: %s"
+  - key: landing.launch.title
+    value: "Upcoming Launches"
+  - key: launch.detailed_view.title
+    value: "Detailed Launch View: %s"
+  - key: launch.detailed_view.launch.title
+    value: "Launch: %s"

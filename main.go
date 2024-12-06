@@ -4,8 +4,6 @@ import (
 	"Nextlaunch/src/config"
 	"Nextlaunch/src/logging"
 	"Nextlaunch/src/tsd"
-	"Nextlaunch/src/tui"
-	"Nextlaunch/src/tui/widgets"
 )
 
 var logger *logging.Logger
@@ -36,19 +34,19 @@ func main() {
 
 	config.LoadConfig()
 
-	context := tui.Model{
-		KeybindingManager: tui.NewKeybindManager(),
-		CursorPosition:    tui.CursorPosition{0, 0},
-		CursorBlink:       false,
-		CursorVisible:     false,
-		CursorStyle:       tui.CursorStyleNone,
-		Data:              make(map[string]interface{}),
-		LL2:               ll2,
-		Snapi:             snapi,
-		Page:              0,
-		Frame:             widgets.NewWindow("NextLaunch", 10, 10, false),
-	}
-
-	tui.StartBubbletea(&context)
+	//context := tui.Model{
+	//	KeybindingManager: tui.NewKeybindManager(),
+	//	CursorPosition:    tui.CursorPosition{0, 0},
+	//	CursorBlink:       false,
+	//	CursorVisible:     false,
+	//	CursorStyle:       tui.CursorStyleNone,
+	//	Data:              make(map[string]interface{}),
+	//	LL2:               ll2,
+	//	Snapi:             snapi,
+	//	Page:              0,
+	//	Compositor:        tui.NewCompositor(widgets.NewWindow("NextLaunch", 10, 10, 0)),
+	//}
+	//
+	//tui.StartBubbletea(&context)
 	logging.ShouldExit = true
 }

@@ -4,22 +4,30 @@ import (
 	"Nextlaunch/src/tui/widgets"
 )
 
+// Compositor is the main rendering manager for the TUI.
+// It manages focus, and renders the widgets to the screen
+// in the correct order and position
 type Compositor struct {
-	widgets     []widgets.Renderer
+
+	// The widgets that are currently being rendered by the compositor
+	// The key is the widget's unique ID
+	// the value is the widget itself
+	// Note: A widget may have its own children, but these are the job of the widget to
+	// ensure that they are rendered correctly
+	widgets     map[string]widgets.Renderer
 	width       int
 	height      int
 	focusEntity string
 }
 
-func NewCompositor(screen widgets.Renderer) *Compositor {
+// NewCompositor creates a new compositor with the given widget as the root widget
+func NewCompositor(widget widgets.Renderer) *Compositor {
+	width, height := widget.Size()
 	compositor := &Compositor{
-		screen:    screen,
-		widgets:   make([]widgets.Renderer, 0),
-		active:    0,
-		width:     screen.Size()[0],
-		height:    screen.Size()[1],
-		focused:   0,
-		lastFocus: 0,
+		widgets:     map[string]widgets.Renderer{widget.Id(): widget},
+		width:       width,
+		height:      height,
+		focusEntity: widget.Id(),
 	}
 	return compositor
 
@@ -34,3 +42,10 @@ func NewCompositor(screen widgets.Renderer) *Compositor {
 
 
 */
+
+func (compositor *Compositor) Render(width, height int) string {
+	output := []string{}
+	for id, widget := range compositor.widgets {
+
+	}
+}

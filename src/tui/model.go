@@ -2,7 +2,6 @@ package tui
 
 import (
 	"Nextlaunch/src/tsd"
-	"Nextlaunch/src/tui/screens"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -31,7 +30,7 @@ type Model struct {
 	CursorStyle       CursorStyle
 	Data              map[string]interface{}
 	Page              int
-	Frame             Renderer
+	Compositor        *Compositor
 	LL2               tsd.LL2Client
 	Snapi             tsd.SnapiClient
 }
@@ -91,11 +90,5 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	switch m.Page {
-	case 0:
-		screens.LandingScreen(m)
-	default:
-		panic("Invalid page")
-	}
-	return m.Frame.Render(m)
+	m.Compositor.View()
 }

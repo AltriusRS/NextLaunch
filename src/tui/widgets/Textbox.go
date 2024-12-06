@@ -5,7 +5,8 @@ import (
 )
 
 type TextBox struct {
-	Id       string
+	id       string
+	z_index  int
 	lines    int
 	width    int
 	height   int
@@ -15,27 +16,40 @@ type TextBox struct {
 	border   *Borders
 }
 
-func NewTextBox(lines, width, height int) *TextBox {
+func NewTextBox(lines, width, height, zIndex int, contents *string) *TextBox {
+	if contents == nil {
+		contents = new(string)
+	}
 	return &TextBox{
-		Id:       NodeID(),
+		id:       NodeID(),
+		z_index:  zIndex,
 		lines:    lines,
 		width:    width,
 		height:   height,
-		contents: "",
+		contents: *contents,
 		active:   false,
 		blurred:  false,
 		border:   NewBorders([4]int{1, 1, 1, 1}, [4]int{1, 1, 1, 1}, "Textbox"),
 	}
 }
+
+func (widget *TextBox) Id() string {
+	return widget.id
+}
+
+func (widget *TextBox) ZIndex() int {
+	return widget.z_index
+}
+
+func (widget *TextBox) SetZIndex(zIndex int) {
+	widget.z_index = zIndex
+}
+
 func (widget *TextBox) Render() string {
 	if widget.blurred {
 		return strings.Repeat("*", len(widget.contents))
 	}
 	return widget.contents
-}
-
-func (widget *TextBox) Clear() {
-
 }
 
 func (widget *TextBox) SetWidth(width int) {

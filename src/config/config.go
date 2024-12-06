@@ -3,7 +3,8 @@ package config
 import (
 	"Nextlaunch/src/errors"
 	"Nextlaunch/src/logging"
-	"github.com/pelletier/go-toml/v2"
+	yamlcomment "github.com/zijiren233/yaml-comment"
+	"gopkg.in/yaml.v3"
 	"os"
 	"path"
 	"path/filepath"
@@ -42,7 +43,7 @@ func LoadConfig() {
 	logger.Debugf("Build Arch is %s", BuildArch)
 
 	// Prepare the configuration directory
-	configPath, err := filepath.Abs(path.Join(PrepConfigDirectory(), "config.toml"))
+	configPath, err := filepath.Abs(path.Join(PrepConfigDirectory(), "config.yaml"))
 
 	if err != nil {
 		logger.Fatal(err)
@@ -97,7 +98,7 @@ func LoadConfig() {
 	}(file)
 
 	// Decode the file into the Config struct
-	content := toml.NewDecoder(file)
+	content := yaml.NewDecoder(file)
 
 	err = content.Decode(&Config)
 
@@ -195,9 +196,9 @@ func PrepConfigDirectory() string {
 		logger.Fatal(err)
 	}
 
-	if _, err := os.Stat(filepath.Join(configDir, "config.toml")); os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(configDir, "config.yaml")); os.IsNotExist(err) {
 		logger.Debug("Creating config file")
-		file, err = os.Create(filepath.Join(configDir, "config.toml"))
+		file, err = os.Create(filepath.Join(configDir, "config.yaml"))
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -208,7 +209,7 @@ func PrepConfigDirectory() string {
 	}
 
 	if file == nil {
-		file, err = os.Open(filepath.Join(configDir, "config.toml"))
+		file, err = os.Open(filepath.Join(configDir, "config.yaml"))
 	}
 
 	if err != nil {
@@ -241,8 +242,13 @@ func WriteConfig(dir string) {
 		}
 	}(file)
 
-	encoder := toml.NewEncoder(file)
-	err = encoder.Encode(Config)
+	data, err := yamlcomment.Marshal(Config)
+
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	err = os.WriteFile(dir, data, 0644)
 
 	if err != nil {
 		logger.Fatal(err)

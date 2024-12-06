@@ -1,15 +1,37 @@
 package translations
 
 import (
-	"github.com/pelletier/go-toml/v2"
+	"gopkg.in/yaml.v3"
 	"os"
 )
 
 type LanguagePacket struct {
-	Code   string            `toml:"code" comment:"Language code - These are defined in ISO 639-1 and should be lowercase (eg: en, de, es, etc.) followed by an underscore and the country code in line with ISO 3166-1 Alpha 3 codes (eg: en_USA, en_GBR, es_ESP, es_MEX, etc.)"`
-	Name   string            `toml:"name" comment:"Language name (eg: British English, American English, German, Spanish (Spain), etc.)"`
-	Native string            `toml:"native" comment:"Language native name (eg: English, English for idiots, Deutsch, Español, etc.)"`
-	Keys   map[string]string `json:"keys"`
+	Code        string          `yaml:"code"`
+	Name        string          `yaml:"name"`
+	Native      string          `yaml:"native"`
+	Periodicals Periodicals     `yaml:"periodicals"`
+	Keybindings []Keybinding    `yaml:"key_bindings"`
+	Interface   []InterfaceText `yaml:"interface"`
+}
+
+type Periodicals struct {
+	Months       []string          `yaml:"months"`
+	AbbrMonths   []string          `yaml:"abbreviated_months"`
+	Weekdays     []string          `yaml:"weekdays"`
+	AbbrWeekdays []string          `yaml:"abbreviated_weekdays"`
+	StartDay     uint8             `yaml:"start_day"`
+	Periods      map[string]string `yaml:"periods"`
+	Formats      map[string]string `yaml:"formats"`
+}
+
+type Keybinding struct {
+	Key    string `yaml:"key"`
+	Action string `yaml:"action"`
+}
+
+type InterfaceText struct {
+	Key   string `yaml:"key"`
+	Value string `yaml:"value"`
 }
 
 func LoadLanguage(path string) (LanguagePacket, error) {
@@ -19,7 +41,7 @@ func LoadLanguage(path string) (LanguagePacket, error) {
 		return language, err
 	}
 	defer file.Close()
-	decoder := toml.NewDecoder(file)
+	decoder := yaml.NewDecoder(file)
 	err = decoder.Decode(&language)
 	if err != nil {
 		return language, err

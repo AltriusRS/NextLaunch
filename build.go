@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,9 +15,21 @@ var (
 	date            = "unknown"
 	arch            = "amd64"
 	operatingSystem = "linux"
+	fileName        = "NextLaunch"
 )
 
 func main() {
+	handle, err := os.Create("./output.txt")
+	if err != nil {
+		panic(err)
+	}
+
+	defer func(handle *os.File) {
+		err := handle.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(handle)
 
 	args := os.Args[1:]
 
@@ -65,8 +78,42 @@ func main() {
 
 	version = fmt.Sprintf("%s-%s-%s+%s", version, branchName, commit, date)
 
+	fileName = fmt.Sprintf("%s_%s_%s", fileName, operatingSystem, arch)
+
+	if operatingSystem == "windows" {
+		fileName += ".exe"
+	}
+
 	printBuildInfo()
 	compile()
+
+	if _, err = handle.WriteString("NEXTLAUNCH_VERSION=" + version + "\r\n"); err != nil {
+		fmt.Println("Failed to write output variable: ('NEXTLAUNCH_VERSION') ", err.Error())
+	}
+	if _, err = handle.WriteString("NEXTLAUNCH_COMMIT=" + commit + "\r\n"); err != nil {
+		fmt.Println("Failed to write output variable: ('NEXTLAUNCH_COMMIT') ", err.Error())
+	}
+	if _, err = handle.WriteString("NEXTLAUNCH_DATE=" + date + "\r\n"); err != nil {
+		fmt.Println("Failed to write output variable: ('NEXTLAUNCH_DATE') ", err.Error())
+	}
+	if _, err = handle.WriteString("NEXTLAUNCH_BRANCH=" + branchName + "\r\n"); err != nil {
+		fmt.Println("Failed to write output variable: ('NEXTLAUNCH_BRANCH') ", err.Error())
+	}
+	if _, err = handle.WriteString("NEXTLAUNCH_FILENAME=" + fileName + "\r\n"); err != nil {
+		fmt.Println("Failed to write output variable: ('NEXTLAUNCH_FILENAME') ", err.Error())
+	}
+
+	if err := handle.Sync(); err != nil {
+		println(err.Error())
+	}
+
+	// read all lines from file
+	// and print them
+
+	scanner := bufio.NewScanner(handle)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text())
+	}
 }
 
 func getGitBranch() (string, error) {
@@ -114,12 +161,12 @@ func runCommand(cmd string) (string, error) {
 
 func printBuildInfo() {
 	println("Build Info:")
-	println("  Version: " + version)
-	println("  Commit:  " + commit)
-	println("  Date:    " + date)
-	println("  Arch:    " + arch)
-	println("  OS:      " + operatingSystem)
-	//panic("Build Complete")
+	println("  Version:  " + version)
+	println("  Commit:   " + commit)
+	println("  Date:     " + date)
+	println("  Arch:     " + arch)
+	println("  OS:       " + operatingSystem)
+	println("  Filename: " + fileName)
 }
 
 func compile() {
@@ -132,7 +179,8 @@ func compile() {
 	command += " -X 'Nextlaunch/src/config.BuildArch=" + arch + "'"
 
 	command += "\""
-	command += " -o NextLaunch.exe"
+	command += " -o ./binaries/" + fileName
+
 	command += " main.go"
 
 	if err := exec.Command("sh", "-c", command).Run(); err != nil {
@@ -145,7 +193,6 @@ func compile() {
 
 				if err.Error() == "exec: \"powershell.exe\": executable file not found in $PATH" {
 					println("Could not find powershell.exe, please install it and try again")
-					return
 				}
 
 				println(err.Error())
@@ -155,5 +202,4 @@ func compile() {
 			println(err.Error())
 		}
 	}
-
 }
