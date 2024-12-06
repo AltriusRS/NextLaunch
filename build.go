@@ -179,6 +179,18 @@ func main() {
 	}
 
 	fmt.Println("==========================================")
+
+	err = handle.Sync()
+
+	if err != nil {
+		return
+	}
+
+	err = handle.Close()
+
+	if err != nil {
+		return
+	}
 }
 
 type Manifest struct {
