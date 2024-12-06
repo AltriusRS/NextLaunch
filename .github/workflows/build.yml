@@ -37,7 +37,7 @@ jobs:
         run: echo "NEXTLAUNCH_VERSION=${{ steps.build.outputs.NEXTLAUNCH_VERSION }}"
 
       - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build.outputs.NEXTLAUNCH_FILENAME }}
           path: binaries
@@ -55,6 +55,9 @@ jobs:
         with:
           path: binaries
           merge-multiple: true
+
+      - name: List files
+        run: ls -R
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
