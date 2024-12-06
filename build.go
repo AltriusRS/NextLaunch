@@ -163,11 +163,22 @@ func main() {
 
 	println("Build Complete")
 
+	fmt.Println("========= Environmental Variables =========")
 	//	debug output file line by line
+
+	_, err = handle.Seek(0, 0)
+
+	if err != nil {
+		println("Error seeking to beginning of file")
+		return
+	}
+
 	scanner := bufio.NewScanner(handle)
 	for scanner.Scan() {
 		fmt.Println(scanner.Text())
 	}
+
+	fmt.Println("==========================================")
 }
 
 type Manifest struct {
