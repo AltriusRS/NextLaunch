@@ -16,8 +16,8 @@ jobs:
           - { runner: macos-latest,  os: darwin,  arch: amd64 }
 #          - { runner: macos-latest,  os: darwin,  arch: arm64 }
 #          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
-          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
-          - { runner: ubuntu-latest, os: windows, arch: amd64 }
+#          - { runner: ubuntu-latest, os: linux,   arch: amd64 }
+#          - { runner: ubuntu-latest, os: windows, arch: amd64 }
     steps:
       - uses: actions/checkout@v4
 
