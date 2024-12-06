@@ -53,6 +53,7 @@ jobs:
       - name: Download a Build Artifact
         uses: actions/download-artifact@v3.0.2
         with:
+          path: binaries
           merge-multiple: true
 
       - name: Create Release
@@ -60,7 +61,7 @@ jobs:
         with:
           name: NextLaunch ${{ needs.build.outputs.version }}
           tag_name: v${{ needs.build.outputs.version }}
-          files: "NextLaunch_*"
+          files: binaries/*
           draft: true
           prerelease: ${{ needs.build.outputs.version == 'dev-*' }}
           generate_release_notes: true
