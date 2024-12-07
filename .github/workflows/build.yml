@@ -32,19 +32,12 @@ jobs:
           go-version: '1.23'
           cache: true
 
-      - name: Download manifest file
-        if: steps.build.manifest.MANIFEST_EXISTS == 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: manifest.json
-
       - name: Build
         run: "go run build.go --os=${{ matrix.os }} --arch=${{ matrix.arch }}"
 
       - name: Get build output
         id: build
         run: cat output.txt >> $GITHUB_OUTPUT
-
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
@@ -53,21 +46,6 @@ jobs:
           path: binaries
           retention-days: 1
           if-no-files-found: error
-
-      - name: Upload manifest file
-        uses: actions/upload-artifact@v4
-        with:
-          name: manifest.json
-          path: .
-          retention-days: 1
-          if-no-files-found: error
-
-
-      - name: Set Manifest Presence
-        id: manifest
-        if : steps.manifest.outputs.MANIFEST_EXISTS != 'true'
-        run: echo "MANIFEST_EXISTS=true" >> $GITHUB_OUTPUT
-
 
   release:
     if: github.event_name == 'push'
