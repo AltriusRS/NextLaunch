@@ -37,7 +37,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: manifest.json
-          path: manifests
 
       - name: Build
         run: "go run build.go --os=${{ matrix.os }} --arch=${{ matrix.arch }}"
@@ -59,7 +58,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: manifest.json
-          path: manifests
           retention-days: 1
           if-no-files-found: error
 
@@ -85,7 +83,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: manifest.json
-          path: manifests
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -94,7 +91,7 @@ jobs:
           tag_name: v${{ needs.build.outputs.NEXTLAUNCH_VERSION }}
           files: | 
             binaries/*
-            manifests/manifest.json
+            manifest.json
           draft: true
           prerelease: ${{ needs.build.outputs.NEXTLAUNCH_VERSION == 'dev-*' }}
           generate_release_notes: true
