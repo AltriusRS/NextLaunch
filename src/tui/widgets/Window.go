@@ -1,9 +1,5 @@
 package widgets
 
-import (
-	"strings"
-)
-
 type Window struct {
 	id            string
 	z_index       int
@@ -13,6 +9,17 @@ type Window struct {
 	border        *Borders
 	active        bool
 	children      []Renderer
+}
+
+func (widget *Window) Collides(i int, i2 int) bool {
+	//TODO implement me
+	//panic("implement me")
+	return false
+}
+
+func (widget *Window) Trigger(kind, x, y int, entity string, data interface{}) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (widget *Window) SetWidth(width int) {
@@ -61,29 +68,31 @@ func (widget *Window) Size() (int, int) {
 	return widget.width, widget.height
 }
 
-func (widget *Window) Render(width int, height int, focusEntity string) string {
+func (widget *Window) Render(width int, height int, focusEntity string) PixelMap {
 
 	//fmt.Println("Rendering widget")
 
-	lines := make([]string, widget.height)
+	var pm PixelMap
 
-	if widget.border != nil {
-		lines = widget.border.Render(widget.width, widget.height)
-	}
+	return pm
 
-	// Render child nodes
-
-	for _, node := range widget.children {
-		output := node.Render(widget.width, widget.height, focusEntity)
-		for i, line := range output {
-			compositeLine := lines[i+widget.posY]
-			lines[i+widget.posY] = compositeLine + line
-		}
-	}
-
-	output := strings.Join(lines, "\r\n")
-
-	return output
+	//if widget.border != nil {
+	//	pm := widget.border.Render(widget.width, widget.height)
+	//}
+	//
+	//// Render child nodes
+	//
+	//for _, node := range widget.children {
+	//	output := node.Render(widget.width, widget.height, focusEntity)
+	//	for i, line := range output {
+	//		compositeLine := lines[i+widget.posY]
+	//		lines[i+widget.posY] = compositeLine + line
+	//	}
+	//}
+	//
+	//output := strings.Join(lines, "\r\n")
+	//
+	//return output
 }
 
 func repeat(s string, n int) string {

@@ -12,7 +12,7 @@ type Renderer interface {
 
 	// Render takes a width, height, and active id parameter in that order
 	// and returns an array of strings representing the rendered final widget
-	Render(int, int, string) []string
+	Render(int, int, string) PixelMap
 
 	// SetWidth sets the width of the widget
 	SetWidth(width int)

@@ -1,9 +1,5 @@
 package widgets
 
-import (
-	"strings"
-)
-
 type Borders struct {
 	v              int
 	pad            [4]int
@@ -127,41 +123,54 @@ func (border *Borders) setBit(bit int, value bool) {
 	}
 }
 
-func (border *Borders) Render(width int, height int) []string {
+//var PaddingPixel = NewPixel(0, 0, " ", 0, 0)
 
-	lines := make([]string, height)
+func (border *Borders) Render(width int, height int, zIndex int) PixelMap {
 
-	index := 0
+	pm := NewPixelMap()
 
-	if border.pad[0] > 0 {
-		index = border.pad[0]
-	}
+	//index := 0
 
-	suffix := strings.Repeat(" ", border.pad[1])
-	prefix := strings.Repeat(" ", border.pad[3])
+	return pm
 
-	titleSize := len(border.title) + len(border.titleChar[0]) + len(border.titleChar[1])
-	maxWidth := width
-	maxTitleRepeat := maxWidth - titleSize
-
-	for i := index; i < height; i++ {
-		switch i {
-		case index:
-			if border.showTitle && len(border.title) > 0 && titleSize < maxWidth {
-				lines[i] = prefix + border.cornerCharTop[0] + border.titleChar[0] + border.titleColor + border.title + "\x1b[0m" + border.titleChar[1] + strings.Repeat(border.horizontalChar, maxTitleRepeat) + border.cornerCharTop[1] + suffix
-			} else {
-				lines[i] = prefix + border.cornerCharTop[0] + strings.Repeat(border.horizontalChar, width-(+border.pad[1]+border.pad[3])) + border.cornerCharTop[1] + suffix
-			}
-		case height - (1 + border.pad[2]):
-			lines[i] = prefix + border.cornerCharBott[0] + strings.Repeat(border.horizontalChar, width-(2+border.pad[1]+border.pad[3])) + border.cornerCharBott[1] + suffix
-		default:
-			if i > height-(1+border.pad[2]+border.margin[2]) {
-				lines[i] = ""
-				continue
-			}
-			lines[i] = prefix + border.verticalChar + strings.Repeat(" ", width-(2+border.pad[1]+border.pad[3])) + border.verticalChar + suffix
-		}
-	}
-
-	return lines
+	//for i := index; i < height; i++ {
+	//	if border.pad[0] > 0 {
+	//
+	//		pm.Set(NewPixel(0, i, strings.Repeat(" ", border.pad[0]), zIndex, 0))
+	//	}
+	//
+	//	pm.IngestRaw()
+	//}
+	//
+	//if border.pad[0] > 0 {
+	//
+	//}
+	//
+	//suffix := strings.Repeat(" ", border.pad[1])
+	//prefix := strings.Repeat(" ", border.pad[3])
+	//
+	//titleSize := len(border.title) + len(border.titleChar[0]) + len(border.titleChar[1])
+	//maxWidth := width
+	//maxTitleRepeat := maxWidth - titleSize
+	//
+	//for i := index; i < height; i++ {
+	//	switch i {
+	//	case index:
+	//		if border.showTitle && len(border.title) > 0 && titleSize < maxWidth {
+	//			lines[i] = prefix + border.cornerCharTop[0] + border.titleChar[0] + border.titleColor + border.title + "\x1b[0m" + border.titleChar[1] + strings.Repeat(border.horizontalChar, maxTitleRepeat) + border.cornerCharTop[1] + suffix
+	//		} else {
+	//			lines[i] = prefix + border.cornerCharTop[0] + strings.Repeat(border.horizontalChar, width-(+border.pad[1]+border.pad[3])) + border.cornerCharTop[1] + suffix
+	//		}
+	//	case height - (1 + border.pad[2]):
+	//		lines[i] = prefix + border.cornerCharBott[0] + strings.Repeat(border.horizontalChar, width-(2+border.pad[1]+border.pad[3])) + border.cornerCharBott[1] + suffix
+	//	default:
+	//		if i > height-(1+border.pad[2]+border.margin[2]) {
+	//			lines[i] = ""
+	//			continue
+	//		}
+	//		lines[i] = prefix + border.verticalChar + strings.Repeat(" ", width-(2+border.pad[1]+border.pad[3])) + border.verticalChar + suffix
+	//	}
+	//}
+	//
+	//return lines
 }
