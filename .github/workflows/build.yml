@@ -58,6 +58,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: manifest.json
+          path: .
           retention-days: 1
           if-no-files-found: error
 
