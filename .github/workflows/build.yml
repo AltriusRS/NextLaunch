@@ -33,6 +33,7 @@ jobs:
           cache: true
 
       - name: Download manifest file
+        if: steps.build.manifest.MANIFEST_EXISTS == 'true'
         uses: actions/download-artifact@v4
         with:
           name: manifest.json
@@ -44,6 +45,7 @@ jobs:
       - name: Get build output
         id: build
         run: cat output.txt >> $GITHUB_OUTPUT
+
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
@@ -60,6 +62,12 @@ jobs:
           path: manifests
           retention-days: 1
           if-no-files-found: error
+
+
+      - name: Set Manifest Presence
+        id: manifest
+        if : steps.manifest.outputs.MANIFEST_EXISTS != 'true'
+        run: echo "MANIFEST_EXISTS=true" >> $GITHUB_OUTPUT
 
 
   release:
