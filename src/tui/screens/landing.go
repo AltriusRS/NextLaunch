@@ -5,7 +5,7 @@ import (
 )
 
 func LandingScreen(ctx RenderContext) widgets.Renderer {
-	window := widgets.NewWindow("Landing", 80, 20, true)
+	window := widgets.NewWindow("Landing", 80, 20, 1)
 
 	return window
 }

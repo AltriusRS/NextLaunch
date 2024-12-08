@@ -30,22 +30,30 @@ func NewCompositor(widget widgets.Renderer) *Compositor {
 		focusEntity: widget.Id(),
 	}
 	return compositor
-
 }
 
-/* TODO:
-* 1. Switch to IDMap based rendering approach (with z-indexing) instead of slices
-     This will allow for more complex (and non-tiled) layouts
-     additionally it will allow for more complex focus management, and easier rendering simulation
-* 2. Implement focus
-* 3. Implement focus cycling
+func (compositor *Compositor) AddWidget(widget widgets.Renderer) {
+	compositor.widgets[widget.Id()] = widget
+}
 
+func (compositor *Compositor) RemoveWidget(id string) {
+	delete(compositor.widgets, id)
+}
 
-*/
+func (compositor *Compositor) FocusEntity(entity string) {
+	compositor.focusEntity = entity
+}
+
+func (compositor *Compositor) SetSize(width, height int) {
+	compositor.width = width
+	compositor.height = height
+}
 
 func (compositor *Compositor) Render(width, height int) string {
-	output := []string{}
-	for id, widget := range compositor.widgets {
-
+	var pm widgets.PixelMap
+	for _, widget := range compositor.widgets {
+		pm.Ingest(widget.Render(width, height, compositor.focusEntity))
 	}
+
+	return pm.Render()
 }

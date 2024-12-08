@@ -4,11 +4,10 @@ import (
 	"Nextlaunch/src/tsd"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"time"
 )
 
-var mainStyle = lipgloss.NewStyle().MarginLeft(1).MarginRight(1)
+//var mainStyle = lipgloss.NewStyle().MarginLeft(1).MarginRight(1)
 
 type CursorStyle int
 
@@ -30,6 +29,7 @@ type Model struct {
 	CursorStyle       CursorStyle
 	Data              map[string]interface{}
 	Page              int
+	LastPage          int
 	Compositor        *Compositor
 	LL2               tsd.LL2Client
 	Snapi             tsd.SnapiClient
@@ -39,6 +39,8 @@ type (
 	frameMsg struct{}
 )
 
+var NeedsRepaint bool = true
+
 //func (m *Model) frame() tea.Cmd {
 //	return tea.Tick(time.Second/60, func(time.Time) tea.Msg {
 //		fmt.Println("bubbletea.frame")
@@ -47,7 +49,7 @@ type (
 //}
 
 func (m *Model) tick() tea.Cmd {
-	return tea.Tick(time.Second/30, func(time.Time) tea.Msg {
+	return tea.Tick(time.Second/2, func(time.Time) tea.Msg {
 		return tickMsg{}
 	})
 }
@@ -63,11 +65,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		fmt.Println("Window size changed")
 		fmt.Println(msg.Width)
 		fmt.Println(msg.Height)
-		m.Frame.SetWidth(msg.Width)
-		m.Frame.SetHeight(msg.Height)
-		mainStyle.Width(msg.Width)
-		mainStyle.Height(msg.Height)
-		mainStyle.Render(m.View())
+		m.Compositor.height = msg.Height
+		m.Compositor.width = msg.Width
+		print("\x1b[2J")
+		m.View()
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -77,18 +78,20 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 		}
 	case frameMsg:
-		//mainStyle.Render(m.View())
+		m.View()
 	case tickMsg:
-		//mainStyle.Render(m.View())
+		m.View()
 	}
-
-	//if m.cursorBlink {
-	//	m.cursorVisible = !m.cursorVisible
-	//}
 
 	return m, m.tick()
 }
 
 func (m *Model) View() string {
-	m.Compositor.View()
+	if !NeedsRepaint {
+		return ""
+	}
+
+	print("\x1b[H" + m.Compositor.Render(m.Compositor.width, m.Compositor.height))
+	NeedsRepaint = false
+	return ""
 }

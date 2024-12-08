@@ -39,8 +39,8 @@ func NewWindow(title string, width, height int, zIndex int) *Window {
 		title:    title,
 		width:    width,
 		height:   height,
-		border:   NewBorders([4]int{1, 1, 1, 1}, [4]int{1, 1, 1, 1}, title),
-		children: make([]Renderer, 2),
+		border:   NewBorders([4]int{1, 1, 1, 1}, title),
+		children: []Renderer{},
 	}
 }
 
@@ -62,37 +62,34 @@ func (widget *Window) SetActive(active bool) {
 
 func (widget *Window) SetSize(width, height int) {
 	widget.width = width
+	widget.height = height
 }
 
 func (widget *Window) Size() (int, int) {
 	return widget.width, widget.height
 }
 
-func (widget *Window) Render(width int, height int, focusEntity string) PixelMap {
+func (widget *Window) Render(width int, height int, focusEntity string) *PixelMap {
+	widget.height = height
+	widget.width = width
 
-	//fmt.Println("Rendering widget")
+	var pm *PixelMap
 
-	var pm PixelMap
+	// Render borders if present
+	if widget.border != nil {
+		pm = widget.border.Render(widget.width, widget.height, widget.z_index)
+	}
+
+	if pm == nil {
+		pm = NewPixelMap()
+	}
+
+	// Render child nodes
+	for _, node := range widget.children {
+		pm.Ingest(node.Render(widget.width, widget.height, focusEntity))
+	}
 
 	return pm
-
-	//if widget.border != nil {
-	//	pm := widget.border.Render(widget.width, widget.height)
-	//}
-	//
-	//// Render child nodes
-	//
-	//for _, node := range widget.children {
-	//	output := node.Render(widget.width, widget.height, focusEntity)
-	//	for i, line := range output {
-	//		compositeLine := lines[i+widget.posY]
-	//		lines[i+widget.posY] = compositeLine + line
-	//	}
-	//}
-	//
-	//output := strings.Join(lines, "\r\n")
-	//
-	//return output
 }
 
 func repeat(s string, n int) string {

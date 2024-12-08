@@ -9,8 +9,6 @@ func TestPixelRenderDefault(t *testing.T) {
 	output := pixel.Render()
 	if output != "=" {
 		t.Errorf("Expected '=', got '%s'", output)
-	} else {
-		t.Log(output)
 	}
 }
 
@@ -19,8 +17,6 @@ func TestPixelRenderBold(t *testing.T) {
 	output := pixel.Render()
 	if output != "\x1b[1m=\x1b[0m" {
 		t.Errorf("Expected '\x1b[1m=\x1b[0m', got '%s'", output)
-	} else {
-		t.Log(output)
 	}
 }
 
@@ -29,8 +25,6 @@ func TestPixelRenderItalic(t *testing.T) {
 	output := pixel.Render()
 	if output != "\x1b[3m=\x1b[0m" {
 		t.Errorf("Expected '\x1b[3m=\x1b[0m', got '%s'", output)
-	} else {
-		t.Log(output)
 	}
 }
 
@@ -39,8 +33,6 @@ func TestPixelRenderUnderline(t *testing.T) {
 	output := pixel.Render()
 	if output != "\x1b[4m=\x1b[0m" {
 		t.Errorf("Expected '\x1b[4m=\x1b[0m', got '%s'", output)
-	} else {
-		t.Log(output)
 	}
 }
 
@@ -49,8 +41,6 @@ func TestPixelRenderBlink(t *testing.T) {
 	output := pixel.Render()
 	if output != "\x1b[5m=\x1b[0m" {
 		t.Errorf("Expected '\x1b[5m=\x1b[0m', got '%s'", output)
-	} else {
-		t.Log(output)
 	}
 }
 
@@ -59,8 +49,6 @@ func TestPixelRenderReverse(t *testing.T) {
 	output := pixel.Render()
 	if output != "\x1b[7m=\x1b[0m" {
 		t.Errorf("Expected '\x1b[7m=\x1b[0m', got '%s'", output)
-	} else {
-		t.Log(output)
 	}
 }
 
@@ -69,8 +57,6 @@ func TestPixelRenderStrikethrough(t *testing.T) {
 	output := pixel.Render()
 	if output != "\x1b[9m=\x1b[0m" {
 		t.Errorf("Expected '\x1b[9m=\x1b[0m', got '%s'", output)
-	} else {
-		t.Log(output)
 	}
 }
 
@@ -79,7 +65,5 @@ func TestPixelRenderDim(t *testing.T) {
 	output := pixel.Render()
 	if output != "\x1b[2m=\x1b[0m" {
 		t.Errorf("Expected '\x1b[2m=\x1b[0m', got '%s'", output)
-	} else {
-		t.Log(output)
 	}
 }

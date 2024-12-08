@@ -16,7 +16,7 @@ const (
 var (
 	RESET = Pixel{
 		char:     "\x1b[0m",
-		z_index:  0,
+		zIndex:   0,
 		features: 0,
 	}
 )
@@ -24,17 +24,56 @@ var (
 type Pixel struct {
 	posX, posY int
 	char       string
-	z_index    int
+	zIndex     int
 	features   byte
-	fg         int32
+	fg         *uint32
+	bg         *uint32
+	fgStandard *uint8
+	bgStandard *uint8
 }
 
 func NewPixel(char string, zIndex int, features byte) *Pixel {
 	return &Pixel{
 		char:     char,
-		z_index:  zIndex,
+		zIndex:   zIndex,
 		features: features,
 	}
+}
+
+func NewColoredPixel(char string, zIndex int, features byte, fg *uint8, bg *uint8) *Pixel {
+	return &Pixel{
+		char:       char,
+		zIndex:     zIndex,
+		features:   features,
+		fgStandard: fg,
+		bgStandard: bg,
+	}
+}
+
+func New24BitColoredPixel(char string, zIndex int, features byte, fg *uint32, bg *uint32) *Pixel {
+	return &Pixel{
+		char:     char,
+		zIndex:   zIndex,
+		features: features,
+		fg:       fg,
+		bg:       bg,
+	}
+}
+
+func RGBToTrueColor(r, g, b uint8) *uint32 {
+	decimal := uint32(r) << 16
+	decimal |= uint32(g) << 8
+	decimal |= uint32(b)
+
+	return &decimal
+}
+
+func TrueColorToRGB(color *uint32) (uint8, uint8, uint8) {
+	r := uint8((*color >> 16) & 0xFF)
+	g := uint8((*color >> 8) & 0xFF)
+	b := uint8(*color & 0xFF)
+
+	return r, g, b
 }
 
 func (p *Pixel) Render() string {
@@ -66,6 +105,20 @@ func (p *Pixel) Render() string {
 
 	if p.features&STRIKETHROUGH != 0 {
 		escape += "9;"
+	}
+
+	if p.bgStandard != nil {
+		escape += fmt.Sprintf("4%d;", p.bgStandard)
+	} else if p.bg != nil {
+		r, g, b := TrueColorToRGB(p.bg)
+		escape += fmt.Sprintf("48;2;%d;%d;%d;", r, g, b)
+	}
+
+	if p.fgStandard != nil {
+		escape += fmt.Sprintf("3%d;", p.fgStandard)
+	} else if p.fg != nil {
+		r, g, b := TrueColorToRGB(p.fg)
+		escape += fmt.Sprintf("38;2;%d;%d;%d;", r, g, b)
 	}
 
 	if escape == "\x1b[" {

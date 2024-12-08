@@ -29,7 +29,7 @@ func NewTextBox(lines, width, height, zIndex int, contents *string) *TextBox {
 		contents: *contents,
 		active:   false,
 		blurred:  false,
-		border:   NewBorders([4]int{1, 1, 1, 1}, [4]int{1, 1, 1, 1}, "Textbox"),
+		border:   NewBorders([4]int{1, 1, 1, 1}, "Textbox"),
 	}
 }
 

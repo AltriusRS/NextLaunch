@@ -36,6 +36,10 @@ func main() {
 
 	config.LoadConfig()
 
+	logging.EnterTui()
+
+	window := widgets.NewWindow("NextLaunch", 80, 20, 1)
+
 	context := tui.Model{
 		KeybindingManager: tui.NewKeybindManager(),
 		CursorPosition:    tui.CursorPosition{0, 0},
@@ -46,7 +50,8 @@ func main() {
 		LL2:               ll2,
 		Snapi:             snapi,
 		Page:              0,
-		Compositor:        tui.NewCompositor(widgets.NewWindow("NextLaunch", 10, 10, 0)),
+		LastPage:          0,
+		Compositor:        tui.NewCompositor(window),
 	}
 
 	tui.StartBubbletea(&context)

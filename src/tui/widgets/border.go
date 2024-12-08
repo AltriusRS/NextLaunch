@@ -2,7 +2,6 @@ package widgets
 
 type Borders struct {
 	v              int
-	pad            [4]int
 	margin         [4]int
 	title          string
 	borderColor    string
@@ -19,13 +18,12 @@ var DefaultHorizontalChar = "─"
 var DefaultVerticalChar = "│"
 var DefaultCornerCharTop = [2]string{"┌", "┐"}
 var DefaultCornerCharBottom = [2]string{"└", "┘"}
-var DefaultTitleChar = [2]string{"┤ ", " ├"}
+var DefaultTitleChar = [2]string{"┤", "├"}
 var DefaultBorderColor = "\x1b[37m"
 var DefaultTitleColor = "\x1b[37m"
 
-func NewBordersWithColor(pad [4]int, margin [4]int, title string, borderColor string, titleColor string) *Borders {
+func NewBordersWithColor(margin [4]int, title string, borderColor string, titleColor string) *Borders {
 	return &Borders{
-		pad:            pad,
 		margin:         margin,
 		title:          title,
 		borderColor:    borderColor,
@@ -39,9 +37,8 @@ func NewBordersWithColor(pad [4]int, margin [4]int, title string, borderColor st
 	}
 }
 
-func NewBorders(pad [4]int, margin [4]int, title string) *Borders {
+func NewBorders(margin [4]int, title string) *Borders {
 	return &Borders{
-		pad:            pad,
 		margin:         margin,
 		title:          title,
 		borderColor:    DefaultBorderColor,
@@ -123,54 +120,95 @@ func (border *Borders) setBit(bit int, value bool) {
 	}
 }
 
-//var PaddingPixel = NewPixel(0, 0, " ", 0, 0)
+func isWithinMargin(x, y, leftLimit, rightLimit, topLimit, bottomLimit int) bool {
+	isTopMargin := y < topLimit
+	isBottomMargin := y > bottomLimit
+	isLeftMargin := x < leftLimit
+	isRightMargin := x > rightLimit
+	outcome := isTopMargin || isBottomMargin || isLeftMargin || isRightMargin
+	return outcome
+}
 
-func (border *Borders) Render(width int, height int, zIndex int) PixelMap {
-
+func (border *Borders) Render(width int, height int, zIndex int) *PixelMap {
 	pm := NewPixelMap()
 
-	//index := 0
+	paddingPixel := NewPixel(" ", zIndex, 0)
+
+	// Margins follow CSS convention (Top, Right, Bottom, Left)
+	leftLimit := border.margin[3]
+	rightLimit := width - 1 - border.margin[1]
+	topLimit := border.margin[0]
+	bottomLimit := height - 1 - border.margin[2]
+
+	leftWall := leftLimit
+	rightWall := width - 1 - border.margin[1]
+	topWall := topLimit
+	bottomWall := height - 1 - border.margin[2]
+
+	titleWidth := len(border.title) + 2
+
+	titleStart := leftWall + 2
+	titleEnd := titleStart + titleWidth
+
+	// Render margin pixels
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			//	Set the top and bottom margin
+			if isWithinMargin(x, y, leftLimit, rightLimit, topLimit, bottomLimit) {
+				// Set the top margin
+				pm.Set(x, y, paddingPixel)
+			} else {
+				// Set the pixel as a blank
+				pm.Set(x, y, paddingPixel)
+			}
+
+			// Render border walls
+			if y == topWall && x == leftWall {
+				// If the pixel is in the top left corner, render the top left corner character
+				pm.Set(x, y, NewPixel(border.cornerCharTop[0], zIndex, 0))
+			} else if y == topWall && x == rightWall {
+				// If the pixel is in the top right corner, render the top right corner character
+				pm.Set(x, y, NewPixel(border.cornerCharTop[1], zIndex, 0))
+			} else if y == bottomWall && x == leftWall {
+				// If the pixel is in the bottom left corner, render the bottom left corner character
+				pm.Set(x, y, NewPixel(border.cornerCharBott[0], zIndex, 0))
+			} else if y == bottomWall && x == rightWall {
+				// If the pixel is in the bottom right corner, render the bottom right corner character
+				pm.Set(x, y, NewPixel(border.cornerCharBott[1], zIndex, 0))
+			} else if (x == leftWall || x == rightWall) && y > topWall && y < bottomWall {
+				// If the pixel is in either vertical surface, render the vertical wall character
+				pm.Set(x, y, NewPixel(border.verticalChar, zIndex, 0))
+			} else if (y == topWall || y == bottomWall) && x > leftWall && x < rightWall {
+				// If the pixel is in either horizontal surface, render the horizontal wall character
+				pm.Set(x, y, NewPixel(border.horizontalChar, zIndex, 0))
+			}
+
+			// If enabled, render the title
+			if border.showTitle && y == topWall {
+				if x == titleStart {
+					pm.Set(x, y, NewPixel(border.titleChar[0], zIndex, 0))
+				} else if x == titleEnd+1 {
+					pm.Set(x, y, NewPixel(border.titleChar[1], zIndex, 0))
+				} else if x == titleStart+1 || x == titleEnd {
+					pm.Set(x, y, NewPixel(" ", zIndex, 0))
+				} else {
+					if x >= titleStart+1 && x <= titleEnd {
+						index := x - titleStart - 2
+						pm.Set(x, y, NewPixel(border.title[index:index+1], zIndex, 0))
+					}
+				}
+			}
+		}
+	}
+
+	//// Render walls
+	//for y := 0; y < height; y++ {
+	//	for x := 0; x < width; x++ {
+	//
+	//	}
+	//}
+	//
+	//// Render title
 
 	return pm
-
-	//for i := index; i < height; i++ {
-	//	if border.pad[0] > 0 {
-	//
-	//		pm.Set(NewPixel(0, i, strings.Repeat(" ", border.pad[0]), zIndex, 0))
-	//	}
-	//
-	//	pm.IngestRaw()
-	//}
-	//
-	//if border.pad[0] > 0 {
-	//
-	//}
-	//
-	//suffix := strings.Repeat(" ", border.pad[1])
-	//prefix := strings.Repeat(" ", border.pad[3])
-	//
-	//titleSize := len(border.title) + len(border.titleChar[0]) + len(border.titleChar[1])
-	//maxWidth := width
-	//maxTitleRepeat := maxWidth - titleSize
-	//
-	//for i := index; i < height; i++ {
-	//	switch i {
-	//	case index:
-	//		if border.showTitle && len(border.title) > 0 && titleSize < maxWidth {
-	//			lines[i] = prefix + border.cornerCharTop[0] + border.titleChar[0] + border.titleColor + border.title + "\x1b[0m" + border.titleChar[1] + strings.Repeat(border.horizontalChar, maxTitleRepeat) + border.cornerCharTop[1] + suffix
-	//		} else {
-	//			lines[i] = prefix + border.cornerCharTop[0] + strings.Repeat(border.horizontalChar, width-(+border.pad[1]+border.pad[3])) + border.cornerCharTop[1] + suffix
-	//		}
-	//	case height - (1 + border.pad[2]):
-	//		lines[i] = prefix + border.cornerCharBott[0] + strings.Repeat(border.horizontalChar, width-(2+border.pad[1]+border.pad[3])) + border.cornerCharBott[1] + suffix
-	//	default:
-	//		if i > height-(1+border.pad[2]+border.margin[2]) {
-	//			lines[i] = ""
-	//			continue
-	//		}
-	//		lines[i] = prefix + border.verticalChar + strings.Repeat(" ", width-(2+border.pad[1]+border.pad[3])) + border.verticalChar + suffix
-	//	}
-	//}
-	//
-	//return lines
 }

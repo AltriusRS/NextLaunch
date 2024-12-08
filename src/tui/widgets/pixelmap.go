@@ -1,26 +1,32 @@
 package widgets
 
+import (
+	"sort"
+	"strings"
+)
+
 // PixelMap is a struct to provide useful methods for managing a map of pixels
 type PixelMap struct {
-	// Provides a map of x/y coordinates to a pixel
-	pixels map[int]map[int]Pixel
+	// Provides a map of y/x coordinates to a pixel
+	pixels map[int]map[int]*Pixel
 }
 
-func NewPixelMap() PixelMap {
-	return PixelMap{
-		pixels: make(map[int]map[int]Pixel),
+func NewPixelMap() *PixelMap {
+	return &PixelMap{
+		pixels: make(map[int]map[int]*Pixel),
 	}
 }
 
 func (m *PixelMap) Ingest(other *PixelMap) {
-	for x, row := range other.pixels {
-		for y, pixel := range row {
+
+	for y, row := range other.pixels {
+		for x, pixel := range row {
 			existing := m.Get(x, y)
 
 			if existing != nil {
 				// Only replace the pixel (or add it) if the z-index is higher than the current pixel at the same coordinates
 				// This allows us to layer multiple pixels on top of each other
-				if pixel.z_index > existing.z_index {
+				if pixel.zIndex > existing.zIndex {
 					m.Set(x, y, pixel)
 				}
 			} else {
@@ -31,36 +37,69 @@ func (m *PixelMap) Ingest(other *PixelMap) {
 }
 
 func (m *PixelMap) Get(x, y int) *Pixel {
-	yMap, ok := m.pixels[x]
+	xMap, ok := m.pixels[y]
 	if !ok {
 		return nil
 	}
 
-	pixel, ok := yMap[y]
+	pixel, ok := xMap[x]
 	if !ok {
 		return nil
 	}
 
-	return &pixel
+	return pixel
 }
 
-func (m *PixelMap) Set(x, y int, pixel Pixel) {
-	_, ok := m.pixels[x]
-	if !ok {
-		m.pixels[x] = make(map[int]Pixel)
+func (m *PixelMap) Set(x, y int, pixel *Pixel) {
+	if m.pixels == nil {
+		m.pixels = make(map[int]map[int]*Pixel)
 	}
-	m.pixels[x][y] = pixel
+
+	_, ok := m.pixels[y]
+	if !ok {
+		m.pixels[y] = make(map[int]*Pixel)
+	}
+	m.pixels[y][x] = pixel
 }
 
-func (m *PixelMap) IngestRaw(pixels []Pixel) {
+func (m *PixelMap) IngestRaw(pixels []*Pixel) {
 	for _, pixel := range pixels {
 		existing := m.Get(pixel.posX, pixel.posY)
 		if existing != nil {
-			if pixel.z_index > existing.z_index {
+			if pixel.zIndex > existing.zIndex {
 				m.Set(pixel.posX, pixel.posY, pixel)
 			}
 		} else {
 			m.Set(pixel.posX, pixel.posY, pixel)
 		}
 	}
+}
+
+func (m *PixelMap) Render() string {
+	var lines []string
+
+	rows := make([]int, 0, len(m.pixels))
+	for y := range m.pixels {
+		rows = append(rows, y)
+	}
+	sort.Ints(rows)
+
+	for _, y := range rows {
+		line := ""
+		row := m.pixels[y]
+		columns := make([]int, 0, len(row))
+		for x := range row {
+			columns = append(columns, x)
+		}
+		sort.Ints(columns)
+		for _, x := range columns {
+			pixel := row[x]
+			if pixel == nil {
+				pixel = &Pixel{char: " ", zIndex: 0, features: 0}
+			}
+			line += pixel.Render()
+		}
+		lines = append(lines, line)
+	}
+	return strings.Join(lines, "\n")
 }
