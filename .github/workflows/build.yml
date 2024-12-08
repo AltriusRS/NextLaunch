@@ -4,8 +4,8 @@
 name: Compile
 
 on:
-  push:
-  pull_request:
+  tags:
+    - 'v*'
 
 jobs:
   build:
