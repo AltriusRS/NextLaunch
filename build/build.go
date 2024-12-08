@@ -310,6 +310,11 @@ func getGitTag() (string, error) {
 		println("Error getting git tag")
 		return "none", err
 	}
+
+	if strings.HasPrefix(out, "v") {
+		out = out[1:]
+	}
+
 	println("Git tag: " + out)
 	return out, nil
 }

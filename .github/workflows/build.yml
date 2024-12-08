@@ -4,8 +4,9 @@
 name: Compile
 
 on:
-  tags:
-    - 'v*'
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build:
