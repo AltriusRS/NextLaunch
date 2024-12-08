@@ -66,11 +66,6 @@ jobs:
           path: binaries
           merge-multiple: true
 
-      - name: Download manifest file
-        uses: actions/download-artifact@v4
-        with:
-          name: manifest.json
-
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -78,7 +73,6 @@ jobs:
           tag_name: v${{ needs.build.outputs.NEXTLAUNCH_VERSION }}
           files: | 
             binaries/*
-            manifest.json
           draft: true
           prerelease: ${{ needs.build.outputs.NEXTLAUNCH_VERSION == 'dev-*' }}
           generate_release_notes: true
