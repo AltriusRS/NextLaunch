@@ -6,7 +6,11 @@ name: Compile
 on:
   push:
     branches:
-      - *
+      - main
+      - dev
+      - release
+      - feature/*
+      - hotfix/*
     tags:
       - v*.*.*
   pull_request:
