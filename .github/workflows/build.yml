@@ -5,8 +5,11 @@ name: Compile
 
 on:
   push:
+    branches:
+      - *
     tags:
-      - 'v*'
+      - v*.*.*
+  pull_request:
 
 jobs:
   build:
