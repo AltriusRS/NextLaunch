@@ -70,7 +70,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: NextLaunch ${{ needs.build.outputs.NEXTLAUNCH_VERSION }}
-          tag_name: v${{ needs.build.outputs.NEXTLAUNCH_VERSION }}
           files: | 
             binaries/*
           draft: true
