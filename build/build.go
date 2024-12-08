@@ -388,7 +388,7 @@ func printBuildInfo(manifest Manifest) {
 
 func compile(manifest Manifest) {
 	println("Compiling...")
-	command := "go build -ldflags=\""
+	command := "GOOS=" + operatingSystem + " GOARCH=" + arch + " go build -ldflags=\""
 	command += "-X 'Nextlaunch/src/config.Version=" + manifest.Version + "'"
 	command += " -X 'Nextlaunch/src/config.BuildCommit=" + manifest.Commit + "'"
 	command += " -X 'Nextlaunch/src/config.BuildDate=" + manifest.Date + "'"

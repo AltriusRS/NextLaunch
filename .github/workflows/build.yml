@@ -26,7 +26,7 @@ jobs:
           - { runner: ubuntu-latest, os: linux,   arch: amd64 }
           - { runner: ubuntu-latest, os: linux,   arch: arm64 }
           - { runner: ubuntu-latest, os: windows, arch: amd64 }
-      max-parallel: 1
+#      max-parallel: 1
     outputs:
       NEXTLAUNCH_VERSION: ${{ steps.build.outputs.NEXTLAUNCH_VERSION }}
       NEXTLAUNCH_COMMIT: ${{ steps.build.outputs.NEXTLAUNCH_COMMIT }}
