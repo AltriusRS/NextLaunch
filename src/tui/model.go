@@ -1,10 +1,10 @@
 package tui
 
 import (
+	"Nextlaunch/src/telemetry"
 	"Nextlaunch/src/tsd"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/posthog/posthog-go"
 	"time"
 )
 
@@ -23,7 +23,7 @@ const (
 
 // Model is the state struct for global state management
 type Model struct {
-	Analytics         *posthog.Client
+	Telemetry         *telemetry.Telemetry
 	KeybindingManager *KeybindingManager
 	CursorPosition    CursorPosition
 	CursorBlink       bool
@@ -58,7 +58,11 @@ func (m *Model) tick() tea.Cmd {
 
 func (m *Model) Init() tea.Cmd {
 	//return tea.Batch(m.tick(), m.frame())
+
+	fmt.Println("Spawning runtime model")
+
 	return m.tick()
+
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -83,7 +87,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//m.View()
 	case tickMsg:
 		m.CheckLL2Data()
-		//m.View()
+		m.View()
 	}
 
 	return m, m.tick()

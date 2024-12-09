@@ -240,10 +240,6 @@ func (logger *Logger) Debugf(format string, v ...interface{}) {
 	logger.Debug(fmt.Sprintf(format, v...))
 }
 
-func (logger *Logger) Flush() {
-
-}
-
 func (logger *Logger) run() {
 	go func() {
 		for !logger.panicked && !logger.muted && !ShouldExit {
@@ -256,11 +252,6 @@ func (logger *Logger) run() {
 				time.Sleep(time.Millisecond * 10)
 				continue
 			}
-		}
-
-		if logger.panicked {
-			logger.Flush()
-			println("Logger panicked and flushed")
 		}
 	}()
 	logger.Debug("Logger started")

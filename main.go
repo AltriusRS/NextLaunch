@@ -3,10 +3,9 @@ package main
 import (
 	"Nextlaunch/src/config"
 	"Nextlaunch/src/logging"
+	"Nextlaunch/src/telemetry"
 	"Nextlaunch/src/tsd"
-	"Nextlaunch/src/tui"
-	"Nextlaunch/src/tui/widgets"
-	"github.com/posthog/posthog-go"
+	"time"
 )
 
 var logger *logging.Logger
@@ -17,7 +16,6 @@ var snapi tsd.SnapiClient
 func init() {
 	logger = logging.NewLogger("main")
 	logger.Log("Starting")
-	//logging.EnterTui()
 
 	config.LoadConfig()
 }
@@ -35,67 +33,33 @@ func main() {
 
 	logger.Log("Starting application")
 
-	config.LoadConfig()
+	t := telemetry.NewTelemetry(config.PHToken)
 
-	logging.EnterTui()
+	//println(t.GetDistinctIdentifier())
 
-	window := widgets.NewWindow("NextLaunch", 80, 20, 1)
+	t.Init()
 
-	ph, err := posthog.NewWithConfig(config.PHToken, posthog.Config{Endpoint: "https://eu.i.posthog.com"})
+	//window := widgets.NewWindow("NextLaunch", 80, 20, 1)
+	//
+	//context := tui.Model{
+	//	Telemetry:         t,
+	//	KeybindingManager: tui.NewKeybindManager(),
+	//	CursorPosition:    tui.CursorPosition{0, 0},
+	//	CursorBlink:       false,
+	//	CursorVisible:     false,
+	//	CursorStyle:       tui.CursorStyleNone,
+	//	Data:              make(map[string]interface{}),
+	//	LL2:               ll2,
+	//	Snapi:             snapi,
+	//	Page:              0,
+	//	LastPage:          0,
+	//	Compositor:        tui.NewCompositor(window),
+	//}
 
-	if err != nil {
-		logger.Errorf("Error initializing posthog")
-		logger.Error(err)
-	}
+	time.Sleep(time.Second * 15)
 
-	defer func(ph posthog.Client) {
-		err := ph.Close()
-		if err != nil {
-			logger.Errorf("Error closing posthog client")
-			logger.Error(err)
-		}
-	}(ph)
-
-	if config.Config.Telemetry.EnableTelemetry {
-		logger.Logf("Telemetry enabled - Starting posthog client")
-		initialProps := posthog.NewProperties()
-
-		// Log system information
-		initialProps.Set("system.os", config.BuildOS)
-		initialProps.Set("system.arch", config.BuildArch)
-		//initialProps.Set()
-
-		initialProps.Set("ll2.has_api_key", config.Config.LaunchLibrary.LaunchLibraryKey != "")
-		initialProps.Set("analytics.enabled", config.Config.Telemetry.EnableTelemetry)
-		initialProps.Set("analytics.level", config.Config.Telemetry.TelemetryLevel)
-
-		// Configure the analytics agent with a startup event trigger
-		err = ph.Enqueue(posthog.Capture{
-			Event:      "configuration.init",
-			Properties: initialProps,
-		})
-
-		if err != nil {
-			return
-		}
-
-	}
-
-	context := tui.Model{
-		Analytics:         &ph,
-		KeybindingManager: tui.NewKeybindManager(),
-		CursorPosition:    tui.CursorPosition{0, 0},
-		CursorBlink:       false,
-		CursorVisible:     false,
-		CursorStyle:       tui.CursorStyleNone,
-		Data:              make(map[string]interface{}),
-		LL2:               ll2,
-		Snapi:             snapi,
-		Page:              0,
-		LastPage:          0,
-		Compositor:        tui.NewCompositor(window),
-	}
-
-	tui.StartBubbletea(&context)
+	//logging.EnterTui()
+	//tui.StartBubbletea(&context)
 	logging.ShouldExit = true
+
 }

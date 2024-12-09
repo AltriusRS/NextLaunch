@@ -25,6 +25,7 @@ var BuildCommit = "none"
 var BuildOS = runtime.GOOS
 var BuildArch = runtime.GOARCH
 var PHToken = "unset"
+var PHKey = "unset"
 
 // IsDev - Your IDE / Editor will likely warn you that this is always true.
 // It is assigned at compile time, and thus is not always true,
@@ -64,6 +65,14 @@ func LoadConfig() {
 			logger.Debugf("Grabbed posthog token from environment")
 		} else {
 			logger.Warningf("Cannot find a valid posthog token, disabling analytics")
+		}
+	}
+	if PHKey == "unset" {
+		if os.Getenv("NLPH_KEY") != "" {
+			PHKey = os.Getenv("NLPH_KEY")
+			logger.Debugf("Grabbed posthog key from environment")
+		} else {
+			logger.Warningf("Cannot find a valid posthog key, disabling analytics")
 		}
 	}
 

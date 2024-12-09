@@ -7,6 +7,7 @@ import (
 )
 
 func StartBubbletea(ctx *Model) {
+	fmt.Println("Spawning bubbletea runtime")
 
 	program := tea.NewProgram(ctx)
 	//program := tea.NewProgram(ctx, tea.WithAltScreen())
