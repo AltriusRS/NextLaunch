@@ -3,6 +3,7 @@ package config
 import (
 	"Nextlaunch/src/errors"
 	"Nextlaunch/src/logging"
+	"github.com/joho/godotenv"
 	yamlcomment "github.com/zijiren233/yaml-comment"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -23,9 +24,12 @@ var DevBuild = "true"
 var BuildCommit = "none"
 var BuildOS = runtime.GOOS
 var BuildArch = runtime.GOARCH
+var PHToken = "unset"
 
-//goland:noinspection GoBoolExpressions
-var IsDev = DevBuild == "true" // This is not a constant because it can be changed at compile time
+// IsDev - Your IDE / Editor will likely warn you that this is always true.
+// It is assigned at compile time, and thus is not always true,
+// this is just a limit of the system
+var IsDev = DevBuild == "true"
 
 var Config Configuration
 var logger *logging.Logger
@@ -35,12 +39,33 @@ func LoadConfig() {
 	logger.Log("Loading config")
 
 	// Debug some information
-	logger.Debugf("Version is %s", Version)
-	logger.Debugf("Build date is %s", BuildDate)
-	logger.Debugf("Build commit is %s", BuildCommit)
-	logger.Debugf("Dev build is %s", DevBuild)
-	logger.Debugf("Build OS is %s", BuildOS)
-	logger.Debugf("Build Arch is %s", BuildArch)
+	if IsDev {
+		logger.Debugf("Version is %s", Version)
+		logger.Debugf("Build date is %s", BuildDate)
+		logger.Debugf("Build commit is %s", BuildCommit)
+		logger.Debugf("Dev build is %s", DevBuild)
+		logger.Debugf("Build OS is %s", BuildOS)
+		logger.Debugf("Build Arch is %s", BuildArch)
+
+		// Load the environment variables if in development mode
+		err := godotenv.Load()
+		if err != nil {
+			logger.Errorf("Error loading env file")
+			logger.Error(err)
+		} else {
+			logger.Infof("Loaded env file")
+		}
+	}
+
+	// Check if the analytics token is set
+	if PHToken == "unset" {
+		if os.Getenv("NLPH_TOKEN") != "" {
+			PHToken = os.Getenv("NLPH_TOKEN")
+			logger.Debugf("Grabbed posthog token from environment")
+		} else {
+			logger.Warningf("Cannot find a valid posthog token, disabling analytics")
+		}
+	}
 
 	// Prepare the configuration directory
 	configPath, err := filepath.Abs(path.Join(PrepConfigDirectory(), "config.yaml"))

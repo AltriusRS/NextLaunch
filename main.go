@@ -6,6 +6,7 @@ import (
 	"Nextlaunch/src/tsd"
 	"Nextlaunch/src/tui"
 	"Nextlaunch/src/tui/widgets"
+	"github.com/posthog/posthog-go"
 )
 
 var logger *logging.Logger
@@ -40,7 +41,48 @@ func main() {
 
 	window := widgets.NewWindow("NextLaunch", 80, 20, 1)
 
+	ph, err := posthog.NewWithConfig(config.PHToken, posthog.Config{Endpoint: "https://eu.i.posthog.com"})
+
+	if err != nil {
+		logger.Errorf("Error initializing posthog")
+		logger.Error(err)
+	}
+
+	defer func(ph posthog.Client) {
+		err := ph.Close()
+		if err != nil {
+			logger.Errorf("Error closing posthog client")
+			logger.Error(err)
+		}
+	}(ph)
+
+	if config.Config.Telemetry.EnableTelemetry {
+		logger.Logf("Telemetry enabled - Starting posthog client")
+		initialProps := posthog.NewProperties()
+
+		// Log system information
+		initialProps.Set("system.os", config.BuildOS)
+		initialProps.Set("system.arch", config.BuildArch)
+		//initialProps.Set()
+
+		initialProps.Set("ll2.has_api_key", config.Config.LaunchLibrary.LaunchLibraryKey != "")
+		initialProps.Set("analytics.enabled", config.Config.Telemetry.EnableTelemetry)
+		initialProps.Set("analytics.level", config.Config.Telemetry.TelemetryLevel)
+
+		// Configure the analytics agent with a startup event trigger
+		err = ph.Enqueue(posthog.Capture{
+			Event:      "configuration.init",
+			Properties: initialProps,
+		})
+
+		if err != nil {
+			return
+		}
+
+	}
+
 	context := tui.Model{
+		Analytics:         &ph,
 		KeybindingManager: tui.NewKeybindManager(),
 		CursorPosition:    tui.CursorPosition{0, 0},
 		CursorBlink:       false,

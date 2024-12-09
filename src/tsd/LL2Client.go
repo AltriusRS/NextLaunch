@@ -86,3 +86,51 @@ func (c *LL2Client) GetLaunches(limit int, offset int) *[]LL2Launch {
 
 	return &response.Results
 }
+
+// TODO: Implement update API support
+//func (c *LL2Client) GetUpdates(limit int, offset int) *[]LL2Update {
+//	c.logger.Debug("Getting updates")
+//	res, err := c.Get(config.LL2FullBaseURL + "updates/upcoming?format=json&mode=detailed&limit=" + strconv.Itoa(limit) + "&offset=" + strconv.Itoa(offset))
+//
+//	c.logger.Debug("Got response")
+//
+//	if err != nil {
+//		c.logger.Error(err)
+//		return nil
+//	}
+//
+//	c.logger.Debug("Reading response")
+//
+//	defer func(Body io.ReadCloser) {
+//		err := Body.Close()
+//		if err != nil {
+//			c.logger.Fatal(err)
+//		}
+//	}(res.Body)
+//
+//	c.logger.Debug("Checking status code")
+//
+//	if res.StatusCode != 200 {
+//		c.logger.Errorf("Status code %d", res.StatusCode)
+//		return nil
+//	}
+//
+//	c.logger.Debug("Decoding response")
+//
+//	var response LL2UpdatesResponse
+//
+//	decoder := json.NewDecoder(res.Body)
+//	c.logger.Debug("Processing response")
+//	err = decoder.Decode(&response)
+//
+//	c.logger.Debug("Decoded response")
+//
+//	if err != nil {
+//		c.logger.Error(err)
+//		return &response.Results
+//	}
+//
+//	c.logger.Debug("Got " + strconv.Itoa(len(response.Results)) + " updates")
+//
+//	return &response.Results
+//}

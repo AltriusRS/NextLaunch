@@ -4,6 +4,7 @@ import (
 	"Nextlaunch/src/tsd"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/posthog/posthog-go"
 	"time"
 )
 
@@ -22,6 +23,7 @@ const (
 
 // Model is the state struct for global state management
 type Model struct {
+	Analytics         *posthog.Client
 	KeybindingManager *KeybindingManager
 	CursorPosition    CursorPosition
 	CursorBlink       bool
@@ -78,9 +80,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 		}
 	case frameMsg:
-		m.View()
+		//m.View()
 	case tickMsg:
-		m.View()
+		m.CheckLL2Data()
+		//m.View()
 	}
 
 	return m, m.tick()
