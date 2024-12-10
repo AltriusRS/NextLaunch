@@ -24,6 +24,7 @@ var DevBuild = "true"
 var BuildCommit = "none"
 var BuildOS = runtime.GOOS
 var BuildArch = runtime.GOARCH
+var BuildBranch = "dev"
 var PHToken = "unset"
 var PHKey = "unset"
 
@@ -47,6 +48,7 @@ func LoadConfig() {
 		logger.Debugf("Dev build is %s", DevBuild)
 		logger.Debugf("Build OS is %s", BuildOS)
 		logger.Debugf("Build Arch is %s", BuildArch)
+		logger.Debugf("Build branch is %s", BuildBranch)
 
 		// Load the environment variables if in development mode
 		err := godotenv.Load()
@@ -224,7 +226,7 @@ func PrepConfigDirectory() string {
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
 		err = os.Mkdir(configDir, 0644)
 		if err != nil {
-			logger.Fatal(errors.NewError(errors.ErrorConfigDirectoryNotFound, err, true))
+			logger.Fatal(errors.NewError(errors.ConfigDirectoryNotFound, err, true))
 		}
 	} else if err != nil {
 		logger.Fatal(err)
