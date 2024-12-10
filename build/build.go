@@ -14,15 +14,23 @@ import (
 )
 
 var (
-	version         = "dev"
-	tag             = "none"
-	branchName      = "none"
-	commit          = "none"
-	date            = "unknown"
-	arch            = "amd64"
-	operatingSystem = "linux"
-	fileName        = "NextLaunch"
-	metadata        = ""
+	version          = "dev"
+	tag              = "none"
+	branchName       = "none"
+	commit           = "none"
+	date             = "unknown"
+	arch             = "amd64"
+	operatingSystem  = "linux"
+	fileName         = "NextLaunch"
+	metadata         = ""
+	phToken          = "unset"
+	phKey            = "unset"
+	snapiVersion     = "4"
+	snapiBaseURL     = "https://api.spaceflightnewsapi.net/v"
+	snapiFullBaseURL = snapiBaseURL + snapiVersion + "/"
+	ll2Version       = "2.3.0"
+	ll2BaseURL       = "https://ll.thespacedevs.com/"
+	ll2FullBaseURL   = ll2BaseURL + ll2Version + "/"
 )
 
 func main() {
@@ -389,11 +397,27 @@ func printBuildInfo(manifest Manifest) {
 func compile(manifest Manifest) {
 	println("Compiling...")
 	command := "GOOS=" + operatingSystem + " GOARCH=" + arch + " go build -ldflags=\""
+
+	// Set build information
 	command += "-X 'Nextlaunch/src/config.Version=" + manifest.Version + "'"
 	command += " -X 'Nextlaunch/src/config.BuildCommit=" + manifest.Commit + "'"
 	command += " -X 'Nextlaunch/src/config.BuildDate=" + manifest.Date + "'"
 	command += " -X 'Nextlaunch/src/config.BuildOS=" + operatingSystem + "'"
 	command += " -X 'Nextlaunch/src/config.BuildArch=" + arch + "'"
+	command += " -X 'Nextlaunch/src/config.BuildBranch=" + manifest.Branch + "'"
+	command += " -X 'Nextlaunch/src/config.PHToken=" + phToken + "'"
+	command += " -X 'Nextlaunch/src/config.PHKey=" + phKey + "'"
+
+	// Set the LL2 API information
+	command += " -X 'Nextlaunch/src/tsd.SNAPIVersion=" + snapiVersion + "'"
+	command += " -X 'Nextlaunch/src/tsd.SNAPIBaseURL=" + snapiBaseURL + "'"
+	command += " -X 'Nextlaunch/src/tsd.SNAPIFullBaseURL=" + snapiFullBaseURL + "'"
+	command += " -X 'Nextlaunch/src/tsd.LL2Version=" + ll2Version + "'"
+	command += " -X 'Nextlaunch/src/tsd.LL2BaseURL=" + ll2BaseURL + "'"
+	command += " -X 'Nextlaunch/src/tsd.LL2FullBaseURL=" + ll2FullBaseURL + "'"
+
+	// Set the telemetry testing flag to false (this way all builds are telemetry enabled)
+	command += " -X 'Nextlaunch/src/telemetry.Testing=false'"
 
 	command += "\""
 	command += " -o ./binaries/" + fileName
