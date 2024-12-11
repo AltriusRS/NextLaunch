@@ -33,11 +33,16 @@ func main() {
 
 	logger.Log("Starting application")
 
-	t := telemetry.NewTelemetry(config.PHToken)
+	t, err := telemetry.NewTelemetry(config.PHToken, config.PHKey, config.Config.Telemetry.TelemetryLevel, config.Config.Telemetry.EnableTelemetry)
+
+	if err != nil {
+		logger.Errorf("Error while initializing telemetry client")
+		logger.Error(err)
+	}
 
 	//println(t.GetDistinctIdentifier())
 
-	t.Init()
+	_ = t.Init()
 
 	//window := widgets.NewWindow("NextLaunch", 80, 20, 1)
 	//

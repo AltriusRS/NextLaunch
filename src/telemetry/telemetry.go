@@ -2,7 +2,10 @@ package telemetry
 
 import (
 	"Nextlaunch/src/config"
+	"Nextlaunch/src/errors"
 	"Nextlaunch/src/logging"
+	"database/sql"
+	"fmt"
 	"github.com/google/uuid"
 	. "github.com/klauspost/cpuid/v2"
 	"github.com/posthog/posthog-go"
@@ -16,14 +19,20 @@ type Telemetry struct {
 	client    posthog.Client
 	hasApiKey bool
 
-	featureFlags map[string]interface{}
+	featureFlags      map[string]*FeatureFlag
+	maxTelemetryLevel uint16
+	enabled           bool
+	db                *sql.DB
+	metadata          posthog.Properties
 }
 
-func NewTelemetry(phToken string) *Telemetry {
+var Testing bool = true
+
+func NewTelemetry(phToken string, phApiKey string, maxTelemetryLevel uint16, enabled bool) (*Telemetry, error) {
 	l := logging.NewLogger("Telemetry")
 	if phToken == "" {
 		l.Debugf("No Posthog Token Provided")
-		return nil
+		return nil, errors.NewError(errors.TelemetryTokenNotFound, fmt.Errorf("no posthog token provided"), true)
 	}
 
 	var client posthog.Client
@@ -31,7 +40,8 @@ func NewTelemetry(phToken string) *Telemetry {
 
 	hasApiKey := false
 
-	if config.PHKey != "unset" {
+	if phApiKey != "" {
+		l.Debugf("Using Posthog API Key")
 		hasApiKey = true
 		client, err = posthog.NewWithConfig(phToken, posthog.Config{
 			Endpoint:       "https://eu.i.posthog.com",
@@ -39,14 +49,14 @@ func NewTelemetry(phToken string) *Telemetry {
 		})
 		if err != nil {
 			l.Errorf("Failed to create Posthog client: %s", err)
-			return nil
+			return nil, errors.NewError(errors.TelemetryKeyNotFound, fmt.Errorf("failed to create posthog client"), true)
 		}
 	} else {
 		l.Debugf("No Posthog Key Provided")
 		client, err = posthog.NewWithConfig(phToken, posthog.Config{Endpoint: "https://eu.i.posthog.com"})
 		if err != nil {
 			l.Errorf("Failed to create Posthog client: %s", err)
-			return nil
+			return nil, errors.NewError(errors.TelemetryKeyNotFound, fmt.Errorf("failed to create posthog client"), true)
 		}
 	}
 
@@ -55,98 +65,126 @@ func NewTelemetry(phToken string) *Telemetry {
 		l.Errorf("Failed to get distinct identifier: %s", err)
 	}
 
-	l.Debugf("Did: %s", did)
-	l.Debugf("PHToken: %s", phToken)
-
 	return &Telemetry{
-		Logger:       l,
-		PHToken:      phToken,
-		did:          did,
-		client:       client,
-		hasApiKey:    hasApiKey,
-		featureFlags: make(map[string]interface{}),
-	}
+		Logger:            l,
+		PHToken:           phToken,
+		maxTelemetryLevel: maxTelemetryLevel,
+		did:               did,
+		client:            client,
+		hasApiKey:         hasApiKey,
+		featureFlags:      make(map[string]*FeatureFlag),
+		enabled:           enabled,
+		metadata:          posthog.NewProperties(),
+	}, nil
 }
 
-func (t *Telemetry) Init() {
+func (t *Telemetry) Init() uint16 {
+	err := InitFeatureFlagDatabase()
+
+	if err != nil {
+		return 0
+	}
+
 	t.Debugf("Initializing Telemetry")
 
-	initData := map[string]interface{}{}
+	targetLevel := 0
 
-	initData["system.os"] = config.BuildOS
-	initData["system.arch"] = config.BuildArch
-	initData["ll2.has_api_key"] = config.Config.LaunchLibrary.LaunchLibraryKey != ""
-	initData["analytics.enabled"] = config.Config.Telemetry.EnableTelemetry
-	initData["analytics.level"] = config.Config.Telemetry.TelemetryLevel
-	initData["build.commit"] = config.BuildCommit
-	initData["build.date"] = config.BuildDate
-	initData["build.os"] = config.BuildOS
-	initData["build.arch"] = config.BuildArch
-	initData["build.version"] = config.Version
+	if t.maxTelemetryLevel > 0 {
+		initData := map[string]interface{}{}
 
-	setData := map[string]interface{}{}
-	setData["system.os"] = config.BuildOS
-	setData["system.arch"] = config.BuildArch
-	setData["ll2.has_api_key"] = config.Config.LaunchLibrary.LaunchLibraryKey != ""
-	setData["analytics.enabled"] = config.Config.Telemetry.EnableTelemetry
-	setData["analytics.level"] = config.Config.Telemetry.TelemetryLevel
-	setData["build.commit"] = config.BuildCommit
-	setData["build.date"] = config.BuildDate
-	setData["build.os"] = config.BuildOS
-	setData["build.arch"] = config.BuildArch
-	setData["build.version"] = config.Version
+		initData["system.os"] = config.BuildOS
+		initData["system.arch"] = config.BuildArch
+		initData["ll2.has_api_key"] = config.Config.LaunchLibrary.LaunchLibraryKey != ""
+		initData["analytics.enabled"] = config.Config.Telemetry.EnableTelemetry
+		initData["analytics.level"] = config.Config.Telemetry.TelemetryLevel
+		initData["build.commit"] = config.BuildCommit
+		initData["build.date"] = config.BuildDate
+		initData["build.os"] = config.BuildOS
+		initData["build.arch"] = config.BuildArch
+		initData["build.version"] = config.Version
 
-	if config.Config.Telemetry.TelemetryLevel == 2 {
-		initData["language.selected"] = config.Config.General.Language
-		setData["language.selected"] = config.Config.General.Language
-		initData["cpu.model"] = CPU.BrandName
-		setData["cpu.model"] = CPU.BrandName
-		initData["cpu.vendor"] = CPU.VendorString
-		setData["cpu.vendor"] = CPU.VendorString
-		initData["cpu.cores"] = CPU.PhysicalCores
-		setData["cpu.cores"] = CPU.PhysicalCores
-		initData["cpu.threads"] = CPU.LogicalCores
-		setData["cpu.threads"] = CPU.LogicalCores
-		initData["cpu.frequency"] = CPU.Hz
-		initData["cpu.cache.l1"] = CPU.Cache.L1I
-		initData["cpu.cache.l2"] = CPU.Cache.L2
-		initData["cpu.cache.l3"] = CPU.Cache.L3
+		// Set the data that will be tied to the analytics profile
+		setData := map[string]interface{}{}
+		setData["system.os"] = config.BuildOS
+		setData["system.arch"] = config.BuildArch
+		setData["ll2.has_api_key"] = config.Config.LaunchLibrary.LaunchLibraryKey != ""
+		setData["analytics.enabled"] = config.Config.Telemetry.EnableTelemetry
+		setData["analytics.level"] = config.Config.Telemetry.TelemetryLevel
+		setData["build.commit"] = config.BuildCommit
+		setData["build.date"] = config.BuildDate
+		setData["build.os"] = config.BuildOS
+		setData["build.arch"] = config.BuildArch
+		setData["build.version"] = config.Version
 
-		for _, feature := range CPU.FeatureSet() {
-			initData["cpu.feature."+feature] = true
+		if config.Config.Telemetry.TelemetryLevel == 2 {
+			initData["language.selected"] = config.Config.General.Language
+			initData["cpu.model"] = CPU.BrandName
+			initData["cpu.vendor"] = CPU.VendorString
+			initData["cpu.cores"] = CPU.PhysicalCores
+			initData["cpu.threads"] = CPU.LogicalCores
+			initData["cpu.frequency"] = CPU.Hz
+			initData["cpu.cache.l1"] = CPU.Cache.L1I
+			initData["cpu.cache.l2"] = CPU.Cache.L2
+			initData["cpu.cache.l3"] = CPU.Cache.L3
+
+			// Set the data that will be tied to the analytics profile
+			setData["language.selected"] = config.Config.General.Language
+			setData["cpu.model"] = CPU.BrandName
+			setData["cpu.vendor"] = CPU.VendorString
+			setData["cpu.cores"] = CPU.PhysicalCores
+			setData["cpu.threads"] = CPU.LogicalCores
+
+			for _, feature := range CPU.FeatureSet() {
+				initData["cpu.feature."+feature] = true
+			}
+
+			targetLevel = 2
 		}
+
+		// Configured at compile time, ignore IDE warnings of "always true"
+		if Testing {
+			setData["test.user"] = true
+
+		}
+
+		// Set the analytics profile data behind the $set key so that
+		// posthog can use it to create a new analytics profile (or update the existing one)
+		initData["$set"] = setData
+
+		// We can ignore this error, as it is not fatal, and is logged in other places already
+		_ = t.Trigger("configuration.init", 0, initData)
+
+		//if t.hasApiKey {
+		t.GetFeatureFlags()
+		//}
 	}
 
-	initData["$set"] = setData
-
-	t.Trigger("configuration.init", 0, initData)
-
-	//if t.hasApiKey {
-	//	t.GetFeatureFlags()
-	//}
+	return uint16(targetLevel)
 }
 
-func (t *Telemetry) Trigger(event string, level uint16, properties map[string]interface{}) {
-	if !config.Config.Telemetry.EnableTelemetry {
+func (t *Telemetry) Trigger(event string, level uint16, properties map[string]interface{}) error {
+	if !t.enabled {
 		t.Debugf("Telemetry disabled, not triggering event %s", event)
-		return
+		return errors.NewError(errors.TelemetryDisabled, fmt.Errorf("telemetry disabled, not triggering event %s", event), true)
 	}
 
-	if level > config.Config.Telemetry.TelemetryLevel {
+	if level > t.maxTelemetryLevel {
 		t.Debugf("Telemetry level is %d, not triggering event with level %s", level, event)
-		return
+		return errors.NewError(errors.TelemetryLevelTooLow, fmt.Errorf("telemetry level is %d, not triggering event with level %s", level, event), true)
 	}
 
 	t.Debugf("Triggering event %s", event)
 
 	props := posthog.NewProperties()
 	for k, v := range properties {
+		if event == "configuration.init" && k == "$set" {
+			// Process the $set data and map it to the telemetry metadata
+			for k2, v2 := range v.(map[string]interface{}) {
+				t.metadata.Set(k2, v2)
+			}
+		}
 		props.Set(k, v)
 	}
-
-	t.Debugf("Distinct ID: %s", t.did)
-	t.Debugf("Event: %s", event)
-	t.Debugf("Properties: %v", props)
 
 	err := t.client.Enqueue(posthog.Capture{
 		DistinctId: t.did,
@@ -157,45 +195,23 @@ func (t *Telemetry) Trigger(event string, level uint16, properties map[string]in
 	if err != nil {
 		t.Errorf("Error triggering event %s: %s", event, err)
 	}
+
+	return err
 }
 
 func (t *Telemetry) GetDistinctIdentifier() string {
 	return t.did
 }
 
-//func (t *Telemetry) GetFeatureFlags() map[string]interface{} {
-//	flags, err := t.client.GetAllFlags(posthog.FeatureFlagPayloadNoKey{
-//		DistinctId: t.did,
-//	})
-//
-//	if err != nil {
-//		t.Errorf("Error getting feature flags: %s", err)
-//		return nil
-//	}
-//
-//	for _, flag := range flags {
-//		println(fmt.Sprintf("%v", flag))
-//		//t.featureFlags[flag.Key] = t.GetFeatureFlag(flag.Key)
-//	}
-//
-//	return t.featureFlags
-//}
-
-//func (t *Telemetry) GetFeatureFlag(key string) interface{} {
-//	payload := posthog.FeatureFlagPayload{
-//		Key:        key,
-//		DistinctId: t.did,
-//	}
-//
-//	flagVariant, err := t.client.GetFeatureFlag(payload)
-//
-//	if err != nil {
-//		t.Errorf("Error getting feature flag: %s", err)
-//		return nil
-//	}
-//
-//	return flagVariant
-//}
+func (t *Telemetry) GetFeatureFlag(key string) (*FeatureFlag, error) {
+	fmt.Printf("Getting feature flag '%s'\n", key)
+	fmt.Printf("Feature flags: %v\n", t.featureFlags)
+	flag, ok := t.featureFlags[key]
+	if !ok {
+		return nil, errors.NewError(errors.TelemetryFeatureFlagNotFound, fmt.Errorf("feature flag '%s' not found", key), true)
+	}
+	return flag, nil
+}
 
 func GetDistinctIdentifier(l *logging.Logger) (string, error) {
 	cfgDir, err := os.UserConfigDir()
