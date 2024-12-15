@@ -61,7 +61,7 @@ func main() {
 	//	Compositor:        tui.NewCompositor(window),
 	//}
 
-	time.Sleep(time.Second * 15)
+	time.Sleep(time.Minute * 15)
 
 	//logging.EnterTui()
 	//tui.StartBubbletea(&context)

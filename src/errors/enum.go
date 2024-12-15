@@ -62,6 +62,15 @@ const (
 	// to initialize the posthog client
 	// Severity: low
 	TelemetryPosthogInitFailed
+
+	// TelemetryPrometheusInitFailed is returned when the telemetry client fails
+	// to initialize the prometheus exporter
+	TelemetryPrometheusInitFailed
+
+	//	TelemetryUniqueIdentifierNotFound is returned when the telemetry client
+	// cannot obtain a unique identifier
+	// Severity: low
+	TelemetryUniqueIdentifierNotFound
 )
 
 // Array decoding the error type names to make it easier to find the error
@@ -82,6 +91,8 @@ var errorTypeNames = map[ErrorType]string{
 	TelemetryKeyNotFound:                 "TelemetryKeyNotFound",
 	TelemetryDistinctIdentifierNotFound:  "TelemetryDistinctIdentifierNotFound",
 	TelemetryPosthogInitFailed:           "TelemetryPosthogInitFailed",
+	TelemetryPrometheusInitFailed:        "TelemetryPrometheusInitFailed",
+	TelemetryUniqueIdentifierNotFound:    "TelemetryUniqueIdentifierNotFound",
 }
 
 type NextLaunchError struct {

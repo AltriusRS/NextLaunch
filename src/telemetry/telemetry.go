@@ -4,12 +4,15 @@ import (
 	"Nextlaunch/src/config"
 	"Nextlaunch/src/errors"
 	"Nextlaunch/src/logging"
-	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
 	. "github.com/klauspost/cpuid/v2"
 	"github.com/posthog/posthog-go"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/push"
 	"os"
+	"runtime"
+	"time"
 )
 
 type Telemetry struct {
@@ -22,11 +25,14 @@ type Telemetry struct {
 	featureFlags      map[string]*FeatureFlag
 	maxTelemetryLevel uint16
 	enabled           bool
-	db                *sql.DB
+	db                *FFDB
 	metadata          posthog.Properties
+	lastSend          time.Time
+	metrics           []*interface{}
+	registry          *prometheus.Registry
 }
 
-var Testing bool = true
+var Testing string = "true"
 
 func NewTelemetry(phToken string, phApiKey string, maxTelemetryLevel uint16, enabled bool) (*Telemetry, error) {
 	l := logging.NewLogger("Telemetry")
@@ -61,9 +67,13 @@ func NewTelemetry(phToken string, phApiKey string, maxTelemetryLevel uint16, ena
 	}
 
 	did, err := GetDistinctIdentifier(l)
+
 	if err != nil {
 		l.Errorf("Failed to get distinct identifier: %s", err)
+		return nil, errors.NewError(errors.TelemetryKeyNotFound, fmt.Errorf("failed to get distinct identifier"), true)
 	}
+
+	registry := prometheus.NewRegistry()
 
 	return &Telemetry{
 		Logger:            l,
@@ -71,20 +81,84 @@ func NewTelemetry(phToken string, phApiKey string, maxTelemetryLevel uint16, ena
 		maxTelemetryLevel: maxTelemetryLevel,
 		did:               did,
 		client:            client,
+		db:                NewFFDB(),
 		hasApiKey:         hasApiKey,
 		featureFlags:      make(map[string]*FeatureFlag),
 		enabled:           enabled,
 		metadata:          posthog.NewProperties(),
+		registry:          registry,
 	}, nil
 }
 
-func (t *Telemetry) Init() uint16 {
-	err := InitFeatureFlagDatabase()
+func (t *Telemetry) Start() {
+	go t.MetricsLoop()
+}
 
-	if err != nil {
-		return 0
+func (t *Telemetry) MetricsLoop() {
+	var memStats runtime.MemStats
+	runtime.ReadMemStats(&memStats)
+
+	assignedMem := prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace:   "nl_telemetry",
+		Name:        "assigned",
+		Subsystem:   "memory",
+		Help:        "The amount of memory assigned to the process",
+		ConstLabels: t.buildLabels(nil),
+	})
+
+	totalMem := prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace:   "nl_telemetry",
+		Name:        "total",
+		Subsystem:   "memory",
+		Help:        "The total amount of memory available to the process",
+		ConstLabels: t.buildLabels(nil),
+	})
+
+	t.registry.MustRegister(assignedMem)
+	t.registry.MustRegister(totalMem)
+
+	for {
+		assignedMem.Set(float64(memStats.Alloc))
+		totalMem.Set(float64(memStats.TotalAlloc))
+		t.SendMetrics()
+		time.Sleep(time.Second * 5)
 	}
 
+}
+
+func (t *Telemetry) buildLabels(labels *map[string]string) prometheus.Labels {
+	response := prometheus.Labels{
+		"timestamp": fmt.Sprintf("%d", time.Now().Unix()),
+	}
+
+	if labels != nil {
+		for k, v := range *labels {
+			response[k] = v
+		}
+	}
+
+	return response
+}
+
+func (t *Telemetry) SendMetrics() {
+	fmt.Println("Sending metrics")
+	pusher := push.New("https://push.nextlaunch.org/", "nl_telemetry")
+
+	pusher.Collector(t.registry)
+
+	pusher.Grouping("version", config.Version)
+	pusher.Grouping("branch", config.BuildBranch)
+	pusher.Grouping("identifier", t.did)
+	pusher.Grouping("arch", config.BuildArch)
+	pusher.Grouping("os", config.BuildOS)
+
+	err := pusher.Push()
+	if err != nil {
+		fmt.Println("\x1b[41mError sending metrics: ", err, "\x1b[0m")
+	}
+}
+
+func (t *Telemetry) Init() uint16 {
 	t.Debugf("Initializing Telemetry")
 
 	targetLevel := 0
@@ -142,9 +216,8 @@ func (t *Telemetry) Init() uint16 {
 		}
 
 		// Configured at compile time, ignore IDE warnings of "always true"
-		if Testing {
+		if Testing == "true" {
 			setData["test.user"] = true
-
 		}
 
 		// Set the analytics profile data behind the $set key so that
@@ -157,6 +230,8 @@ func (t *Telemetry) Init() uint16 {
 		//if t.hasApiKey {
 		t.GetFeatureFlags()
 		//}
+
+		t.Start()
 	}
 
 	return uint16(targetLevel)
@@ -212,6 +287,26 @@ func (t *Telemetry) GetFeatureFlag(key string) (*FeatureFlag, error) {
 	}
 	return flag, nil
 }
+
+func (t *Telemetry) GetMetrics() []*interface{} {
+	return t.metrics
+}
+
+func (t *Telemetry) GetLastSend() time.Time {
+	return t.lastSend
+}
+
+func (t *Telemetry) TrackMetric(metric *interface{}) {
+	t.metrics = append(t.metrics, metric)
+}
+
+//func (t *Telemetry) SendMetrics() {
+//
+//	for _, metric := range t.metrics {
+//
+//	}
+//	t.lastSend = time.Now()
+//}
 
 func GetDistinctIdentifier(l *logging.Logger) (string, error) {
 	cfgDir, err := os.UserConfigDir()

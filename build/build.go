@@ -2,16 +2,42 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/joho/godotenv"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
 )
+
+type Manifest struct {
+	Version  string         `json:"version"`
+	Tag      string         `json:"tag"`
+	Branch   string         `json:"branch"`
+	Commit   string         `json:"commit"`
+	Date     string         `json:"date"`
+	Metadata string         `json:"metadata"`
+	Files    []ManifestFile `json:"files"`
+}
+
+type ManifestFile struct {
+	Name   string `json:"name"`
+	Path   string `json:"path"`
+	Size   int    `json:"size"`
+	Arch   string `json:"arch"`
+	OS     string `json:"os"`
+	Sha256 string `json:"sha256"`
+}
 
 var (
 	version          = "dev"
@@ -34,6 +60,14 @@ var (
 )
 
 func main() {
+
+	// load env file
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		println("Error loading env file")
+		println(err)
+	}
 
 	manifest := getBuildManifest()
 
@@ -90,6 +124,9 @@ func main() {
 			println("Unknown argument: " + arg + " ('" + value + "') - ignoring")
 		}
 	}
+
+	phToken = os.Getenv("NLPH_TOKEN")
+	phKey = os.Getenv("NLPH_KEY")
 
 	tag, err = getGitTag()
 
@@ -193,25 +230,90 @@ func main() {
 	if err != nil {
 		return
 	}
+
+	ReleaseToBucket(manifest)
 }
 
-type Manifest struct {
-	Version  string         `json:"version"`
-	Tag      string         `json:"tag"`
-	Branch   string         `json:"branch"`
-	Commit   string         `json:"commit"`
-	Date     string         `json:"date"`
-	Metadata string         `json:"metadata"`
-	Files    []ManifestFile `json:"files"`
-}
+func ReleaseToBucket(manifest Manifest) {
+	fmt.Println("Uploading binary to bucket")
 
-type ManifestFile struct {
-	Name   string `json:"name"`
-	Path   string `json:"path"`
-	Size   int    `json:"size"`
-	Arch   string `json:"arch"`
-	OS     string `json:"os"`
-	Sha256 string `json:"sha256"`
+	var bucketName string = "nextlaunch"
+	var objectName string = "releases/" + manifest.Branch + "/" + manifest.Tag + "/" + manifest.Files[0].Name
+	var filePath string = "binaries/" + manifest.Files[len(manifest.Files)-1].Name
+	var accountId string = os.Getenv("CLOUDFLARE_ACCOUNT_ID")
+	var accessKeyId string = os.Getenv("CLOUDFLARE_ACCESS_KEY")
+	var secretAccessKey string = os.Getenv("CLOUDFLARE_SECRET_ACCESS_KEY")
+
+	println(accountId)
+	println(accessKeyId)
+	println(secretAccessKey)
+	println(bucketName)
+	println(objectName)
+	println(filePath)
+
+	cfg, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(
+				accessKeyId,
+				secretAccessKey,
+				"",
+			),
+		),
+		config.WithRegion("auto"),
+	)
+
+	if err != nil {
+		fmt.Println("Error loading config")
+		fmt.Println(err)
+		return
+	}
+
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountId))
+	})
+
+	var buf bytes.Buffer
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		fmt.Println("Error opening file")
+		fmt.Println(err)
+		return
+	}
+
+	defer file.Close()
+
+	if _, err := io.Copy(&buf, file); err != nil {
+		fmt.Println("Error copying file")
+		fmt.Println(err)
+		return
+	}
+
+	uploadMetadata, err := client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(objectName),
+		Body:        bytes.NewReader(buf.Bytes()),
+		ContentType: aws.String("application/octet-stream"),
+		//IfNoneMatch: aws.String("*"),
+		Metadata: map[string]string{
+			"version":  *aws.String(manifest.Version),
+			"tag":      *aws.String(manifest.Tag),
+			"branch":   *aws.String(manifest.Branch),
+			"commit":   *aws.String(manifest.Commit),
+			"date":     *aws.String(manifest.Date),
+			"metadata": *aws.String(manifest.Metadata),
+		},
+	})
+
+	if err != nil {
+		fmt.Println("Error uploading file")
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("Uploaded file to bucket")
+	fmt.Println(uploadMetadata)
 }
 
 func getBuildManifest() Manifest {
@@ -273,7 +375,7 @@ func appendBuildManifest(manifest *Manifest, path string) error {
 	}
 
 	manifest.Files = append(manifest.Files, ManifestFile{
-		Name:   path,
+		Name:   fileName,
 		Path:   path,
 		Size:   int(stat.Size()),
 		Arch:   arch,
@@ -396,7 +498,7 @@ func printBuildInfo(manifest Manifest) {
 
 func compile(manifest Manifest) {
 	println("Compiling...")
-	command := "GOOS=" + operatingSystem + " GOARCH=" + arch + " go build -ldflags=\""
+	command := "GOOS=" + operatingSystem + " GOARCH=" + arch + " CGO_ENABLED=1 go build -ldflags=\""
 
 	// Set build information
 	command += "-X 'Nextlaunch/src/config.Version=" + manifest.Version + "'"
@@ -424,23 +526,12 @@ func compile(manifest Manifest) {
 
 	command += " main.go"
 
-	if err := exec.Command("sh", "-c", command).Run(); err != nil {
-		println("Build Error")
+	if out, err := runCommand(command); err != nil {
+		println("Build Failed")
+		println(err.Error())
+	} else {
+		println(out)
+		println("Build Succeeded")
 
-		if err.Error() == "exec: \"sh\": executable file not found in %PATH%" {
-			println("Detected Windows, trying to compile under powershell")
-			if err := exec.Command("powershell.exe", "-c", command).Run(); err != nil {
-				println("Build Error")
-
-				if err.Error() == "exec: \"powershell.exe\": executable file not found in $PATH" {
-					println("Could not find powershell.exe, please install it and try again")
-				}
-
-				println(err.Error())
-			}
-		} else {
-			println("Build Failed")
-			println(err.Error())
-		}
 	}
 }

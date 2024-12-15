@@ -12,7 +12,7 @@ import (
 	"runtime"
 )
 
-var Version = "0.0.1"
+var Version = "0.0.0"
 var LL2Version = "2.3.0"
 var LL2BaseURL = "https://lldev.thespacedevs.com/"
 var LL2FullBaseURL = LL2BaseURL + LL2Version + "/"

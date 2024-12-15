@@ -1,125 +1,71 @@
 package telemetry
 
 import (
-	"database/sql"
-	"encoding/json"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"os"
-	"path/filepath"
+	"path"
 )
 
-var featureFlagDatabase *sql.DB
-var featureFlagDatabasePath string
-var needsInit bool
+type FFDB struct {
+	filename string
+	store    map[string][]byte
+}
 
-var featureFlagTableName = "feature_flags"
+func NewFFDB() *FFDB {
+	filename := GetCacheFileName()
 
-var initSql = `CREATE TABLE IF NOT EXISTS feature_flags (
-	display_name TEXT PRIMARY KEY unique,
-	available BOOLEAN not null default true,
-	opted_in BOOLEAN not null default false,
-	metadata TEXT NOT NULL default '{}',
-	groups TEXT
-)`
+	return &FFDB{
+		filename: filename,
+		store:    make(map[string][]byte),
+	}
+}
 
-func InitFeatureFlagDatabase() error {
-	fmt.Printf("Initializing feature flag database\n")
-	// Create the feature flag database if it doesn't already exist
-	cfgDir, err := os.UserConfigDir()
-	if err != nil {
-		return err
+func (f *FFDB) RegisterFlag(key string, available bool, required bool, metadata map[string]interface{}, group string) (*FeatureFlag, error) {
+	flag := &FeatureFlag{
+		Key:       key,
+		Available: available,
+		OptedIn:   false,
+		Metadata:  metadata,
+		Group:     group,
 	}
 
-	featureFlagDatabasePath = filepath.Join(cfgDir, "NextLaunch", "cache.db")
+	return flag, nil
+}
 
-	fmt.Printf("Feature flag database path: %s\n", featureFlagDatabasePath)
-
-	// Check if the feature flag database exists
-	_, err = os.Stat(featureFlagDatabasePath)
-	if os.IsNotExist(err) {
-		fmt.Printf("Feature flag database does not exist, creating\n")
-		needsInit = true
+func (f *FFDB) Get(key string) ([]byte, error) {
+	if val, ok := f.store[key]; ok {
+		return val, nil
 	}
+	return nil, fmt.Errorf("key not found")
+}
 
-	featureFlagDatabase, err = sql.Open("sqlite3", featureFlagDatabasePath)
-	if err != nil {
-		fmt.Printf("Error opening feature flag database: %v\n", err)
-		return err
-	}
-
-	defer func(featureFlagDatabase *sql.DB) {
-		err := featureFlagDatabase.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(featureFlagDatabase)
-
-	if needsInit {
-		// Create the feature flag database
-		_, err = featureFlagDatabase.Exec(initSql)
-		if err != nil {
-			fmt.Printf("Error initializing feature flag database: %v\n", err)
-			return err
-		}
-	}
-
-	fmt.Printf("Feature flag database initialized\n")
-
+func (f *FFDB) Set(key string, val []byte) error {
+	f.store[key] = val
 	return nil
 }
 
-func GetFeatureFlagList() []FeatureFlag {
-	fmt.Printf("Getting feature flag list\n")
-	var flags []FeatureFlag
+func (f *FFDB) Delete(key string) {
+	delete(f.store, key)
+}
 
-	rows, err := featureFlagDatabase.Query(
-		`
-SELECT display_name, available, opted_in, metadata, groups 
-FROM feature_flags 
-ORDER BY display_name`,
-	)
+func (f *FFDB) Close() {
+	f.store = nil
+}
+
+func (f *FFDB) Save() error {
+	return nil
+}
+
+func GetCacheFileName() string {
+	cacheDir, err := os.UserCacheDir()
+
 	if err != nil {
-		panic(err)
-	}
-	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(rows)
-
-	for rows.Next() {
-		var displayName string
-		var available bool
-		var optedIn bool
-		var metadata string
-		var group string
-
-		err := rows.Scan(
-			&displayName,
-			&available,
-			&optedIn,
-			&metadata,
-			&group,
-		)
-		if err != nil {
-			panic(err)
-		}
-
-		meta := make(map[string]interface{})
-		err = json.Unmarshal([]byte(metadata), &meta)
-		if err != nil {
-			panic(err)
-		}
-		flags = append(flags, FeatureFlag{
-			Key:       displayName,
-			Available: available,
-			OptedIn:   optedIn,
-			Metadata:  meta,
-			Group:     group,
-		})
+		fmt.Println(err)
+		panic("Failed to get cache directory")
 	}
 
-	return flags
+	appCacheDir := path.Join(cacheDir, "NextLaunch")
+
+	appCacheFilePath := path.Join(appCacheDir, "cache.db")
+	return appCacheFilePath
 }
