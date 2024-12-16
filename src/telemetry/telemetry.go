@@ -141,7 +141,7 @@ func (t *Telemetry) buildLabels(labels *map[string]string) prometheus.Labels {
 }
 
 func (t *Telemetry) SendMetrics() {
-	fmt.Println("Sending metrics")
+	//fmt.Println("Sending metrics")
 	pusher := push.New("https://push.nextlaunch.org/", "nl_telemetry")
 
 	pusher.Collector(t.registry)
@@ -218,6 +218,10 @@ func (t *Telemetry) Init() uint16 {
 		// Configured at compile time, ignore IDE warnings of "always true"
 		if Testing == "true" {
 			setData["test.user"] = true
+			initData["test.user"] = true
+		} else {
+			setData["test.user"] = false
+			initData["test.user"] = false
 		}
 
 		// Set the analytics profile data behind the $set key so that
@@ -227,11 +231,16 @@ func (t *Telemetry) Init() uint16 {
 		// We can ignore this error, as it is not fatal, and is logged in other places already
 		_ = t.Trigger("configuration.init", 0, initData)
 
-		//if t.hasApiKey {
 		t.GetFeatureFlags()
-		//}
 
-		t.Start()
+		// Note: This is disabled for now, as it is not useful for the moment.
+		promTelemetry, err := t.GetFeatureFlag("prometheus-metrics")
+		if err != nil {
+			t.Errorf("Error getting prometheus.enabled feature flag: %s", err)
+		}
+		if promTelemetry != nil {
+			t.Start()
+		}
 	}
 
 	return uint16(targetLevel)
@@ -252,11 +261,12 @@ func (t *Telemetry) Trigger(event string, level uint16, properties map[string]in
 
 	props := posthog.NewProperties()
 	for k, v := range properties {
-		if event == "configuration.init" && k == "$set" {
+		if event == "configuration.init" && k != "$set" {
 			// Process the $set data and map it to the telemetry metadata
-			for k2, v2 := range v.(map[string]interface{}) {
-				t.metadata.Set(k2, v2)
-			}
+			//for k2, v2 := range v.(map[string]interface{}) {
+			//	t.metadata.Set(k2, v2)
+			//}
+			t.metadata.Set(k, v)
 		}
 		props.Set(k, v)
 	}
@@ -287,26 +297,6 @@ func (t *Telemetry) GetFeatureFlag(key string) (*FeatureFlag, error) {
 	}
 	return flag, nil
 }
-
-func (t *Telemetry) GetMetrics() []*interface{} {
-	return t.metrics
-}
-
-func (t *Telemetry) GetLastSend() time.Time {
-	return t.lastSend
-}
-
-func (t *Telemetry) TrackMetric(metric *interface{}) {
-	t.metrics = append(t.metrics, metric)
-}
-
-//func (t *Telemetry) SendMetrics() {
-//
-//	for _, metric := range t.metrics {
-//
-//	}
-//	t.lastSend = time.Now()
-//}
 
 func GetDistinctIdentifier(l *logging.Logger) (string, error) {
 	cfgDir, err := os.UserConfigDir()
