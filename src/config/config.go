@@ -36,6 +36,10 @@ var IsDev = DevBuild == "true"
 var Config Configuration
 var logger *logging.Logger
 
+func init() {
+	LoadConfig()
+}
+
 func LoadConfig() {
 	logger = logging.NewLogger("config")
 	logger.Log("Loading config")

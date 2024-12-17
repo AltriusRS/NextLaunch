@@ -2,7 +2,9 @@ package tui
 
 import (
 	"Nextlaunch/src/telemetry"
+	"Nextlaunch/src/translations"
 	"Nextlaunch/src/tsd"
+	"Nextlaunch/src/tui/screens"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"time"
@@ -23,8 +25,10 @@ const (
 
 // Model is the state struct for global state management
 type Model struct {
+	NeedsRepaint      bool
 	Telemetry         *telemetry.Telemetry
 	KeybindingManager *KeybindingManager
+	Translations      *translations.TranslationManager
 	CursorPosition    CursorPosition
 	CursorBlink       bool
 	CursorVisible     bool
@@ -33,15 +37,14 @@ type Model struct {
 	Page              int
 	LastPage          int
 	Compositor        *Compositor
-	LL2               tsd.LL2Client
-	Snapi             tsd.SnapiClient
+	LL2               *tsd.LL2Client
+	Snapi             *tsd.SnapiClient
 }
+
 type (
 	tickMsg  struct{}
 	frameMsg struct{}
 )
-
-var NeedsRepaint bool = true
 
 //func (m *Model) frame() tea.Cmd {
 //	return tea.Tick(time.Second/60, func(time.Time) tea.Msg {
@@ -58,6 +61,11 @@ func (m *Model) tick() tea.Cmd {
 
 func (m *Model) Init() tea.Cmd {
 	//return tea.Batch(m.tick(), m.frame())
+
+	screen := screens.LandingScreen(screens.RenderContext{Width: m.Compositor.width, Height: m.Compositor.height})
+	screenId := screen.Id()
+	m.Compositor.AddWidget(screen)
+	m.Compositor.FocusEntity(screenId)
 
 	fmt.Println("Spawning runtime model")
 
@@ -94,11 +102,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	if !NeedsRepaint {
+	if !m.NeedsRepaint {
 		return ""
 	}
 
 	print("\x1b[H" + m.Compositor.Render(m.Compositor.width, m.Compositor.height))
-	NeedsRepaint = false
+	m.NeedsRepaint = false
 	return ""
 }

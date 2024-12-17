@@ -40,6 +40,12 @@ func NewLL2Client() *LL2Client {
 	return c
 }
 
+// TestToken TODO: Implement api key check, not that this should be a problem,
+// since this is moving towards a custom API that provides a proxy to LL2 using our own token
+func (c *LL2Client) TestToken(token string) bool {
+	return true
+}
+
 func (c *LL2Client) GetLaunches(limit int, offset int) *[]LL2Launch {
 	c.logger.Debug("Getting launches")
 	res, err := c.Get(config.LL2FullBaseURL + "launches/upcoming?format=json&mode=detailed&limit=" + strconv.Itoa(limit) + "&offset=" + strconv.Itoa(offset))

@@ -92,6 +92,19 @@ func (widget *Window) Render(width int, height int, focusEntity string) *PixelMa
 	return pm
 }
 
+func (widget *Window) AddChild(child Renderer) {
+	widget.children = append(widget.children, child)
+}
+
+func (widget *Window) RemoveChild(id string) {
+	for i, child := range widget.children {
+		if child.Id() == id {
+			widget.children = append(widget.children[:i], widget.children[i+1:]...)
+			return
+		}
+	}
+}
+
 func repeat(s string, n int) string {
 	result := ""
 	for i := 0; i < n; i++ {

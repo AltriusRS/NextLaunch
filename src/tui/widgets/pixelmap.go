@@ -9,28 +9,38 @@ import (
 type PixelMap struct {
 	// Provides a map of y/x coordinates to a pixel
 	pixels map[int]map[int]*Pixel
+
+	startX int
+	startY int
 }
 
 func NewPixelMap() *PixelMap {
 	return &PixelMap{
 		pixels: make(map[int]map[int]*Pixel),
+		startX: 0,
+		startY: 0,
 	}
+}
+
+func (m *PixelMap) SetPos(x, y int) {
+	m.startX = x
+	m.startY = y
 }
 
 func (m *PixelMap) Ingest(other *PixelMap) {
 
 	for y, row := range other.pixels {
 		for x, pixel := range row {
-			existing := m.Get(x, y)
+			existing := m.Get(x+other.startX, y+other.startY)
 
 			if existing != nil {
 				// Only replace the pixel (or add it) if the z-index is higher than the current pixel at the same coordinates
 				// This allows us to layer multiple pixels on top of each other
 				if pixel.zIndex > existing.zIndex {
-					m.Set(x, y, pixel)
+					m.Set(x+other.startX, y+other.startY, pixel)
 				}
 			} else {
-				m.Set(x, y, pixel)
+				m.Set(x+other.startX, y+other.startY, pixel)
 			}
 		}
 	}

@@ -35,12 +35,17 @@ func (t *Telemetry) GetFeatureFlags() map[string]*FeatureFlag {
 		return nil
 	}
 
+	emitFeatureFlags := false
+
 	for _, flag := range flags {
 		t.Debugf("Testing for feature flag '%s'", flag.Name)
 
 		flagPayload := posthog.FeatureFlagPayload{
-			Key:        flag.Name,
-			DistinctId: t.did,
+			Key:                   flag.Name,
+			DistinctId:            t.did,
+			PersonProperties:      t.metadata,
+			OnlyEvaluateLocally:   true,
+			SendFeatureFlagEvents: &emitFeatureFlags,
 		}
 
 		flagVariant, err := t.client.GetFeatureFlag(flagPayload)
@@ -104,7 +109,7 @@ func (t *Telemetry) GetFeatureFlags() map[string]*FeatureFlag {
 		t.featureFlags[k] = flag
 	}
 
-	fmt.Printf("Feature flags: %v\n", t.featureFlags)
+	//fmt.Printf("Feature flags: %v\n", t.featureFlags)
 
 	return t.featureFlags
 }

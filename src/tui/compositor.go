@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"Nextlaunch/src/tui/screens"
 	"Nextlaunch/src/tui/widgets"
 )
 
@@ -14,10 +15,19 @@ type Compositor struct {
 	// the value is the widget itself
 	// Note: A widget may have its own children, but these are the job of the widget to
 	// ensure that they are rendered correctly
-	widgets     map[string]widgets.Renderer
-	width       int
-	height      int
-	focusEntity string
+	widgets      map[string]widgets.Renderer
+	width        int
+	height       int
+	focusEntity  string
+	LoadingState map[string]*screens.LoadingState
+}
+
+func (compositor *Compositor) QueueLoadingState(state *screens.LoadingState) {
+	compositor.LoadingState[state.ID] = state
+}
+
+func (compositor *Compositor) RemoveLoadingState(id string) {
+	delete(compositor.LoadingState, id)
 }
 
 // NewCompositor creates a new compositor with the given widget as the root widget

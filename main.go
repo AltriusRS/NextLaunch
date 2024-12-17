@@ -4,20 +4,21 @@ import (
 	"Nextlaunch/src/config"
 	"Nextlaunch/src/logging"
 	"Nextlaunch/src/telemetry"
+	"Nextlaunch/src/translations"
 	"Nextlaunch/src/tsd"
-	"time"
+	"Nextlaunch/src/tui"
+	"Nextlaunch/src/tui/widgets"
 )
 
 var logger *logging.Logger
 
-var ll2 tsd.LL2Client
-var snapi tsd.SnapiClient
+var ll2 *tsd.LL2Client
+var snapi *tsd.SnapiClient
 
 func init() {
 	logger = logging.NewLogger("main")
 	logger.Log("Starting")
 
-	config.LoadConfig()
 }
 
 func main() {
@@ -26,10 +27,14 @@ func main() {
 
 	logger.Log("Initialized")
 
+	logger.Log("Syncronizing translations")
+
+	tlm := translations.NewTranslationManager()
+
 	logger.Log("Preparing caches")
 
-	ll2 = *tsd.NewLL2Client()
-	snapi = *tsd.NewSnapiClient()
+	ll2 = tsd.NewLL2Client()
+	snapi = tsd.NewSnapiClient()
 
 	logger.Log("Starting application")
 
@@ -44,27 +49,31 @@ func main() {
 
 	_ = t.Init()
 
-	//window := widgets.NewWindow("NextLaunch", 80, 20, 1)
-	//
-	//context := tui.Model{
-	//	Telemetry:         t,
-	//	KeybindingManager: tui.NewKeybindManager(),
-	//	CursorPosition:    tui.CursorPosition{0, 0},
-	//	CursorBlink:       false,
-	//	CursorVisible:     false,
-	//	CursorStyle:       tui.CursorStyleNone,
-	//	Data:              make(map[string]interface{}),
-	//	LL2:               ll2,
-	//	Snapi:             snapi,
-	//	Page:              0,
-	//	LastPage:          0,
-	//	Compositor:        tui.NewCompositor(window),
-	//}
+	window := widgets.NewWindow("NextLaunch", 80, 20, 1)
 
-	time.Sleep(time.Minute * 15)
+	context := tui.Model{
+		Telemetry:         t,
+		KeybindingManager: tui.NewKeybindManager(),
+		Translations:      tlm,
+		CursorPosition:    tui.CursorPosition{0, 0},
+		CursorBlink:       false,
+		CursorVisible:     false,
+		CursorStyle:       tui.CursorStyleNone,
+		Data: map[string]interface{}{
+			"launches": map[string]interface{}{},
+			"updates":  map[string]interface{}{},
+		},
+		LL2:        ll2,
+		Snapi:      snapi,
+		Page:       0,
+		LastPage:   0,
+		Compositor: tui.NewCompositor(window),
+	}
+
+	//time.Sleep(time.Minute * 15)
 
 	//logging.EnterTui()
-	//tui.StartBubbletea(&context)
+	tui.StartBubbletea(&context)
 	logging.ShouldExit = true
 
 }

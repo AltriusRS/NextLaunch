@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"Nextlaunch/src/config"
+	"Nextlaunch/src/tui/screens"
 	"time"
 )
 
@@ -36,15 +38,34 @@ func (m *Model) CheckLL2Data() {
 	}
 
 	if needsLaunchSync {
+		job := screens.NewLoadingState("Syncing launches", time.Second*5)
+		job.SetWorking(true).SetProgress(0).SetContext("Querying API")
+
+		m.Compositor.QueueLoadingState(job)
 		launches := map[string]interface{}{}
 
 		apiLaunches := m.LL2.GetLaunches(20, 0)
+
+		job.SetProgress(len(*apiLaunches))
+		job.SetContext("Processing Response")
+
 		for _, launch := range *apiLaunches {
 			launches[launch.ID] = &launch
 		}
+		job.SetProgress(98)
+		job.SetContext(m.Translations.Translate("tasks.update_launches.progress"))
 		cache["launches"] = launches
 		cache["last_launch_sync"] = time.Now()
 		needsLaunchSync = false
+		job.SetProgress(100)
+		_ = m.Telemetry.Trigger("launches.sync", 0, map[string]interface{}{
+			"count":       len(launches),
+			"time":        time.Now(),
+			"api_version": config.LL2Version,
+			"using_token": config.Config.LaunchLibrary.LaunchLibraryKey != "",
+		})
+
+		m.Compositor.RemoveLoadingState(job.ID)
 	}
 
 	/*if needsUpdateSync {

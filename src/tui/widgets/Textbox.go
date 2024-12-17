@@ -1,9 +1,5 @@
 package widgets
 
-import (
-	"strings"
-)
-
 type TextBox struct {
 	id       string
 	z_index  int
@@ -14,6 +10,35 @@ type TextBox struct {
 	active   bool
 	blurred  bool
 	border   *Borders
+}
+
+//func (widget *TextBox) Render() string {
+//	if widget.blurred {
+//		return strings.Repeat("*", len(widget.contents))
+//	}
+//	return widget.contents
+//}
+
+func (widget *TextBox) Render(i int, i2 int, s string) *PixelMap {
+	//TODO implement me
+
+	pxl := NewPixelMap()
+
+	//p
+	//
+	//pxl.Add(widget.border.Render(widget.width, widget.height, widget.z_index))
+	//pxl.Add(NewPixelMapFromString(widget.Render(), widget.width, widget.height, widget.z_index))
+	return pxl
+}
+
+func (widget *TextBox) Collides(i int, i2 int) bool {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (widget *TextBox) Trigger(kind, x, y int, entity string, data interface{}) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func NewTextBox(lines, width, height, zIndex int, contents *string) *TextBox {
@@ -43,13 +68,6 @@ func (widget *TextBox) ZIndex() int {
 
 func (widget *TextBox) SetZIndex(zIndex int) {
 	widget.z_index = zIndex
-}
-
-func (widget *TextBox) Render() string {
-	if widget.blurred {
-		return strings.Repeat("*", len(widget.contents))
-	}
-	return widget.contents
 }
 
 func (widget *TextBox) SetWidth(width int) {

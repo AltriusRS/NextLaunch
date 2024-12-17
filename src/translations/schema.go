@@ -6,12 +6,12 @@ import (
 )
 
 type LanguagePacket struct {
-	Code        string          `yaml:"code"`
-	Name        string          `yaml:"name"`
-	Native      string          `yaml:"native"`
-	Periodicals Periodicals     `yaml:"periodicals"`
-	Keybindings []Keybinding    `yaml:"key_bindings"`
-	Interface   []InterfaceText `yaml:"interface"`
+	Code        string            `yaml:"code"`
+	Name        string            `yaml:"name"`
+	Native      string            `yaml:"native"`
+	Periodicals Periodicals       `yaml:"periodicals"`
+	Keybindings []Keybinding      `yaml:"key_bindings"`
+	Interface   map[string]string `yaml:"interface"`
 }
 
 type Periodicals struct {
